@@ -38,6 +38,7 @@ import Image from "next/image";
 import logoImage from "@/public/logo.jpg";
 import { useState, createElement } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import TestPaperCarousel from "@/components/TestPaperCarousel";
 
 export default function HomePage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -390,6 +391,21 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Test Paper Carousel */}
+      <section className="py-10 bg-primary/80">
+        <div className="container mx-auto px-4">
+          <div className="text-center text-primary-foreground max-w-3xl mx-auto mb-12 space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold">
+              Featured Test Papers
+            </h2>
+            <p className="text-lg text-muted">
+              Explore our most popular mock tests and practice papers
+            </p>
+          </div>
+          <TestPaperCarousel />
         </div>
       </section>
 

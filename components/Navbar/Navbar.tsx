@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import React from "react";
+import { Separator } from "../ui/separator";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -141,7 +142,7 @@ export default function Navbar() {
                   </NavigationMenuItem>
 
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger className="text-md font-medium text-muted-foreground hover:text-foreground transition-colors px-4 py-2">
+                    <NavigationMenuTrigger className="text-md font-medium text-muted-foreground hover:text-foreground transition-colors bg-transparent px-4 py-2">
                       Exams
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
