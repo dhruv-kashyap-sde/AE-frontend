@@ -8,6 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  InputGroupText,
+  InputGroupTextarea,
+} from "@/components/ui/input-group";
 import { Input } from "@/components/ui/input";
 import {
   BookOpen,
@@ -33,6 +41,8 @@ import {
   Search,
   Menu,
   X,
+  SearchIcon,
+  XIcon,
 } from "lucide-react";
 import Image from "next/image";
 import logoImage from "@/public/logo.jpg";
@@ -114,7 +124,9 @@ export default function HomePage() {
     ],
   };
 
-  const filteredExams = (exams[selectedCategory as keyof typeof exams] || []).filter((exam: { name: string; category: string }) =>
+  const filteredExams = (
+    exams[selectedCategory as keyof typeof exams] || []
+  ).filter((exam: { name: string; category: string }) =>
     exam.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -163,41 +175,42 @@ export default function HomePage() {
               // width={600}
               // height={400}
             />
-            <div className="max-w-4xl text-center lg:text-left space-y-8">
+            <div className="max-w-4xl flex flex-col items-center lg:items-start space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
                 <Sparkles className="h-4 w-4" />
                 <span>Trusted by 50,000+ students in India</span>
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-                Clear Your Exams with <br />
+              <h1 className="text-5xl text-center lg:text-left md:text-6xl font-bold tracking-tight">
+                Practice hard with <br />
                 <span className="gradient-text"> Accurate Exam</span>
               </h1>
 
-              <p className="text-xl text-muted-foreground max-w-2xl">
+              <p className="text-center lg:text-left text-muted-foreground max-w-2xl">
                 Access thousands of high-quality mock tests, practice papers,
                 and detailed solutions. Prepare smart, score high, and achieve
                 your dreams.
               </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-                <Link href="/signup">
-                  <Button size="lg" className="text-base px-8">
-                    Start Free Trial
+              <section className="flex flex-col gap-4 w-full max-w-md px-4 lg:px-0">
+                <InputGroup>
+                  <InputGroupInput placeholder="Search Tests..." />
+                  <InputGroupAddon>
+                    <SearchIcon />
+                  </InputGroupAddon>
+                  <InputGroupAddon align="inline-end">
+                    <XIcon />
+                  </InputGroupAddon>
+                </InputGroup>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button asChild>
+                    <Link href="/signup">Explore Tests</Link>
                   </Button>
-                </Link>
-                <Link href="/about">
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    className="text-base px-8"
-                  >
-                    Learn More
+                  <Button asChild variant="secondary">
+                    <Link href="/about">Learn More</Link>
                   </Button>
-                </Link>
-              </div>
+                </div>
+              </section>
             </div>
-            
           </div>
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12">
@@ -300,12 +313,19 @@ export default function HomePage() {
             <div className="flex-1">
               {/* Mobile Category Selector & Search */}
               <div className="lg:hidden mb-6 space-y-4">
-                <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <Sheet
+                  open={isMobileMenuOpen}
+                  onOpenChange={setIsMobileMenuOpen}
+                >
                   <SheetTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
                       <span className="flex items-center gap-2">
                         {createElement(
-                          categories.find((c) => c.id === selectedCategory)?.icon || FileText,
+                          categories.find((c) => c.id === selectedCategory)
+                            ?.icon || FileText,
                           { className: "h-5 w-5" }
                         )}
                         {selectedCategory}
@@ -341,45 +361,64 @@ export default function HomePage() {
               </div>
 
               {/* Search Bar */}
-              <div className="relative mb-6">
+              {/* <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Search exams..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  
                   className="pl-10 h-12 text-base"
                 />
-              </div>
+                
+              </div> */}
+               <InputGroup className=" mb-6">
+                  <InputGroupInput 
+                  type="text"
+                  placeholder="Search Tests..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <InputGroupAddon>
+                    <SearchIcon />
+                  </InputGroupAddon>
+                  {searchQuery && (<InputGroupAddon className="cursor-pointer" onClick={() => setSearchQuery('')} align="inline-end">
+                    <XIcon className="hover:bg-accent rounded-full"/>
+                  </InputGroupAddon>)}
+                </InputGroup>
 
               {/* Exam Cards Grid */}
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredExams.length > 0 ? (
-                  filteredExams.map((exam: { name: string; category: string }, index: number) => (
-                    <Card
-                      key={index}
-                      className="group cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary"
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                            <BookOpen className="h-6 w-6 text-primary" />
+                  filteredExams.map(
+                    (
+                      exam: { name: string; category: string },
+                      index: number
+                    ) => (
+                      <Card
+                        key={index}
+                        className="group cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary"
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <BookOpen className="h-6 w-6 text-primary" />
+                            </div>
+                            <CardTitle className="text-lg">
+                              {exam.name}
+                            </CardTitle>
                           </div>
-                          <CardTitle className="text-lg">
-                            {exam.name}
-                          </CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <Link
-                        href={`exam/${exam.name}`}
-                          className="w-full group-hover:text-primary"
-                        >
-                          View Tests →
-                        </Link>
-                      </CardContent>
-                    </Card>
-                  ))
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <Link
+                            href={`exam/${exam.name}`}
+                            className="w-full group-hover:text-primary"
+                          >
+                            View Tests →
+                          </Link>
+                        </CardContent>
+                      </Card>
+                    )
+                  )
                 ) : (
                   <div className="col-span-full text-center py-12">
                     <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
