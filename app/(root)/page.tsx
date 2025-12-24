@@ -228,6 +228,21 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Test Paper Carousel */}
+      <section className="py-10 bg-primary/80">
+        <div className="container mx-auto px-4">
+          <div className="text-center text-primary-foreground max-w-3xl mx-auto mb-12 space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold">
+              Featured Test Papers
+            </h2>
+            <p className="text-lg text-muted">
+              Explore our most popular mock tests and practice papers
+            </p>
+          </div>
+          <TestPaperCarousel />
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-4">
@@ -433,20 +448,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Test Paper Carousel */}
-      <section className="py-10 bg-primary/80">
-        <div className="container mx-auto px-4">
-          <div className="text-center text-primary-foreground max-w-3xl mx-auto mb-12 space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Featured Test Papers
-            </h2>
-            <p className="text-lg text-muted">
-              Explore our most popular mock tests and practice papers
-            </p>
-          </div>
-          <TestPaperCarousel />
-        </div>
-      </section>
 
       {/* How It Works */}
       <section className="py-20 bg-muted/50">
