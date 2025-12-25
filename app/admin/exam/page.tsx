@@ -16,6 +16,7 @@ import {
   PlusIcon,
   TrashIcon,
   PencilIcon,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,8 +67,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import Link from "next/link";
 
-const ExamComponent = () => {
+const page = () => {
   // State for Exams
   const [categories, setCategories] = useState<
     Array<{ id: string; name: string; image: string }>
@@ -79,6 +89,7 @@ const ExamComponent = () => {
     Array<{
       id: number;
       title: string;
+      slug: string;
       categoryId: number;
       image: string;
       questions: Array<any>;
@@ -87,6 +98,7 @@ const ExamComponent = () => {
     {
       id: 1,
       title: "JEE Main 2025",
+      slug: "jee-main-2025",
       categoryId: 1,
       image: "/exam1.jpg",
       questions: [],
@@ -94,6 +106,7 @@ const ExamComponent = () => {
     {
       id: 2,
       title: "NEET 2025",
+      slug: "neet-2025",
       categoryId: 2,
       image: "/exam2.jpg",
       questions: [],
@@ -106,6 +119,7 @@ const ExamComponent = () => {
     title: "",
     categoryId: "",
     image: "",
+    slug: "",
   });
 
   const handleCreateExam = () => {
@@ -116,18 +130,29 @@ const ExamComponent = () => {
         ...newExam,
         categoryId: Number(newExam.categoryId),
         questions: [],
+        slug: newExam.title.toLowerCase().replace(/\s+/g, "-"),
       },
     ]);
-    setNewExam({ title: "", categoryId: "", image: "" });
+    setNewExam({ title: "", categoryId: "", image: "", slug: "" });
     setExamDialog(false);
   };
 
+
   return (
     <div className="space-y-6 overflow-y-auto">
-      <div className="flex items-center justify-between">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Exams</BreadcrumbPage>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold">Exam Management</h2>
-          <p className="text-muted-foreground">
+          <h2 className="md:text-2xl font-bold">Exam Management</h2>
+          <p className="text-xs md:text-sm text-muted-foreground">
             Create and manage exam categories and tests
           </p>
         </div>
@@ -214,74 +239,91 @@ const ExamComponent = () => {
       </div>
 
       <Separator />
-
-      
-      <Table className="text-center rounded-2xl border">
-        <TableCaption>A list of your recent invoices.</TableCaption>
-        <TableHeader className="bg-card">
-          <TableRow>
-            <TableHead className="w-25 text-center">Logo</TableHead>
-            <TableHead className="text-center">Title</TableHead>
-            <TableHead className="text-center">Category</TableHead>
-            <TableHead className="text-center">Total Tests</TableHead>
-            <TableHead className="text-center">Created At</TableHead>
-            <TableHead className="text-end">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {[1,2,3,4,5,6,7,8].map(exam => (
-            <TableRow key={exam} className="cursor-pointer">
-              <TableCell className="font-medium">
-                <Avatar className="h-10 w-10 mx-auto">
-                  <img
-                    src="https://www.mockers.in/storage/exams/August2023/tNSML6LJjntagAE2hO3W.png"
-                    alt="Exam Image"
-                  />
-                </Avatar>
-              </TableCell>
-              <TableCell>JEE Main 2025</TableCell>
-              <TableCell className="text-muted-foreground">
-                Engineering
-              </TableCell>
-              <TableCell>0</TableCell>
-              <TableCell className="text-muted-foreground">24-12-25</TableCell>
-              <TableCell className="flex justify-end gap-2">
-                <Button
-                  size={"icon-sm"}
-                  variant={"ghost"}
-                  className="text-primary hover:text-primary"
-                >
-                  <PencilIcon />
-                </Button>
-                <Button
-                  size={"icon-sm"}
-                  variant={"ghost"}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <TrashIcon />
-                </Button>
-              </TableCell>
+      <div className="bg-card border rounded-lg">
+        <Table className="text-center">
+          <TableHeader className="bg-transparent">
+            <TableRow>
+              <TableHead className="w-25 text-center">Logo</TableHead>
+              <TableHead className="text-center">Title</TableHead>
+              <TableHead className="text-center">Category</TableHead>
+              <TableHead className="text-center">Total Tests</TableHead>
+              <TableHead className="text-center">Created At</TableHead>
+              <TableHead className="text-end">Actions</TableHead>
             </TableRow>
-            ))
-          }
-        </TableBody>
-      </Table>
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <FolderPlus />
-          </EmptyMedia>
-          <EmptyTitle>No Exams</EmptyTitle>
-          <EmptyDescription>Create First Exam</EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <Button onClick={() => setExamDialog(true)} variant={"secondary"}>
-            Create
-          </Button>
-        </EmptyContent>
-      </Empty>
+          </TableHeader>
+          <TableBody>
+            {exams.length > 0 ? (
+              exams.map((exam) => (
+                <TableRow
+                  onClick={() => navigator}
+                  key={exam.id}
+                >
+                  <TableCell className="font-medium">
+                    <Avatar className="h-10 w-10 mx-auto">
+                      <img
+                        src="https://www.mockers.in/storage/exams/August2023/tNSML6LJjntagAE2hO3W.png"
+                        alt="Exam Image"
+                      />
+                    </Avatar>
+                  </TableCell>
+                  <TableCell>{exam.title}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {exam.categoryId}
+                  </TableCell>
+                  <TableCell>0</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    24-12-25
+                  </TableCell>
+                  <TableCell className="flex justify-end gap-2">
+                    <Link href={`exam/${exam.slug}`}>
+                      <Button
+                        size={"icon-sm"}
+                        variant={"ghost"}
+                      >
+                        <Eye />
+                      </Button>
+                    </Link>
+                    <Button
+                      size={"icon-sm"}
+                      variant={"ghost"}
+                      className="text-primary hover:text-primary"
+                    >
+                      <PencilIcon />
+                    </Button>
+                    <Button
+                      size={"icon-sm"}
+                      variant={"ghost"}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <TrashIcon />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <FolderPlus />
+                  </EmptyMedia>
+                  <EmptyTitle>No Exams</EmptyTitle>
+                  <EmptyDescription>Create First Exam</EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <Button
+                    onClick={() => setExamDialog(true)}
+                    variant={"secondary"}
+                  >
+                    Create
+                  </Button>
+                </EmptyContent>
+              </Empty>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };
 
-export default ExamComponent;
+export default page;
