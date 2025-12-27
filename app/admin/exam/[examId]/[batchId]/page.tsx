@@ -1,19 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import {
-  Home,
-  BookOpen,
-  Users,
-  LogOut,
-  LayoutDashboard,
-  TrendingUp,
   FileText,
   Plus,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  FolderPlus,
-  PlusIcon,
   TrashIcon,
   PencilIcon,
 } from "lucide-react";
@@ -31,8 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -57,25 +44,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Avatar } from "@/components/ui/avatar";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Breadcrumb,
   BreadcrumbItem,
