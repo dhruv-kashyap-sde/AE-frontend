@@ -1,4 +1,6 @@
 import "./globals.css";
+import 'katex/dist/katex.min.css'
+
 export const metadata = {
   title: "AccurateExam - Premium Exam Preparation Platform",
   description:

@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
 import readXlsxFile from "read-excel-file";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import SmartText from "./SmartText";
 import { Separator } from "@/components/ui/separator";
 
 type Question = {
@@ -276,12 +277,14 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
                       className="border-b pb-3 last:border-0 bg-background rounded p-3"
                     >
                       <p className="font-medium mb-2">
-                        Q{idx + 1}. {q.question}
+                        Q{idx + 1}. <SmartText text={q.question} />
                       </p>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-bold">A)</span>{" "}
-                          <span className="text-muted-foreground">{q.option_a}</span>
+                          <span className="text-muted-foreground">
+                            <SmartText text={q.option_a} />
+                          </span>
                           {q.correct_option === "A" && (
                             <Badge variant="default" className="ml-auto">
                               ✓ Correct
@@ -290,7 +293,9 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-bold">B)</span>{" "}
-                          <span className="text-muted-foreground">{q.option_b}</span>
+                          <span className="text-muted-foreground">
+                            <SmartText text={q.option_b} />
+                          </span>
                           {q.correct_option === "B" && (
                             <Badge variant="default" className="ml-auto">
                               ✓ Correct
@@ -299,7 +304,9 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-bold">C)</span>{" "}
-                          <span className="text-muted-foreground">{q.option_c}</span>
+                          <span className="text-muted-foreground">
+                            <SmartText text={q.option_c} />
+                          </span>
                           {q.correct_option === "C" && (
                             <Badge variant="default" className="ml-auto">
                               ✓ Correct
@@ -308,7 +315,9 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-bold">D)</span>{" "}
-                          <span className="text-muted-foreground">{q.option_d}</span>
+                          <span className="text-muted-foreground">
+                            <SmartText text={q.option_d} />
+                          </span>
                           {q.correct_option === "D" && (
                             <Badge variant="default" className="ml-auto">
                               ✓ Correct

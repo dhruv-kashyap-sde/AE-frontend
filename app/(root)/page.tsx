@@ -230,13 +230,13 @@ export default function HomePage() {
       </section>
 
       {/* Test Paper Carousel */}
-      <section className="py-10 bg-primary/80">
+      <section className="py-10 bg-primary/80 dark:bg-transparent ">
         <div className="container mx-auto px-4">
           <div className="text-center text-primary-foreground max-w-3xl mx-auto mb-12 space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold">
+            <h2 className="text-3xl md:text-4xl font-bold dark:text-primary">
               Featured Test Papers
             </h2>
-            <p className="text-lg text-muted">
+            <p className="text-lg text-muted dark:text-foreground">
               Explore our most popular mock tests and practice papers
             </p>
           </div>

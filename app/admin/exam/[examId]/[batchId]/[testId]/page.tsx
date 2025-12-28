@@ -58,6 +58,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import UploadExcel from "./UploadExcel";
+import SmartText from "./SmartText";
 
 type Question = {
   id: number;
@@ -175,7 +176,7 @@ export default function page() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink>Batch Title</BreadcrumbLink>
+            <BreadcrumbLink href={`/admin/exam/exam-title/batch-title`}>Batch Title</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -377,19 +378,27 @@ export default function page() {
                       {indexOfFirstQuestion + idx + 1}
                     </TableCell>
                     <TableCell className=" text-muted-foreground max-w-md">
-                      {question.question}
+                      <SmartText text={question.question} />
                     </TableCell>
                     <TableCell>
-                      <p className="text-muted-foreground "> {question.option_a}</p>
+                      <p className="text-muted-foreground">
+                        <SmartText text={question.option_a} />
+                      </p>
                     </TableCell>
                     <TableCell>
-                      <p className="text-muted-foreground "> {question.option_b}</p>
+                      <p className="text-muted-foreground">
+                        <SmartText text={question.option_b} />
+                      </p>
                     </TableCell>
                     <TableCell>
-                      <p className="text-muted-foreground "> {question.option_c}</p>
+                      <p className="text-muted-foreground">
+                        <SmartText text={question.option_c} />
+                      </p>
                     </TableCell>
                     <TableCell>
-                      <p className="text-muted-foreground "> {question.option_d}</p>
+                      <p className="text-muted-foreground">
+                        <SmartText text={question.option_d} />
+                      </p>
                     </TableCell>
                     <TableCell>
                       <Badge variant="default">{question.correct_option}</Badge>
