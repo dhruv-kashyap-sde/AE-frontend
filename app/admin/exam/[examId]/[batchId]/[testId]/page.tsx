@@ -48,6 +48,8 @@ import {
   ChevronRight,
   PencilIcon,
   TrashIcon,
+  Image as ImageIcon,
+  X,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -68,6 +70,7 @@ type Question = {
   option_c: string;
   option_d: string;
   correct_option: "A" | "B" | "C" | "D";
+  image?: string;
 };
 
 export default function page() {
@@ -98,6 +101,8 @@ export default function page() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const questionsPerPage = 20;
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [newQuestion, setNewQuestion] = useState<Omit<Question, "id">>({
     question: "",
@@ -112,37 +117,66 @@ export default function page() {
     setQuestions([...questions, ...uploadedQuestions]);
   };
 
-  // coded for later use
-  const handleAddQuestion = () => {
-    if (newQuestion.question.trim()) {
-      setQuestions([
-        ...questions,
-        {
-          id: Date.now(),
-          ...newQuestion,
-        },
-      ]);
-      setNewQuestion({
-        question: "",
-        option_a: "",
-        option_b: "",
-        option_c: "",
-        option_d: "",
-        correct_option: "A",
-      });
-      setIsAddDialogOpen(false);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
+  const handleRemoveImage = () => {
+    setSelectedImageFile(null);
+    setImagePreview(null);
+    if (editingQuestion) {
+      setEditingQuestion({
+        ...editingQuestion,
+        image: undefined,
+      });
+    }
+  };
+
+  // coded for later use
+  // const handleAddQuestion = () => {
+  //   if (newQuestion.question.trim()) {
+  //     setQuestions([
+  //       ...questions,
+  //       {
+  //         id: Date.now(),
+  //         ...newQuestion,
+  //       },
+  //     ]);
+  //     setNewQuestion({
+  //       question: "",
+  //       option_a: "",
+  //       option_b: "",
+  //       option_c: "",
+  //       option_d: "",
+  //       correct_option: "A",
+  //     });
+  //     setIsAddDialogOpen(false);
+  //   }
+  // };
+
   const handleEditQuestion = () => {
     if (editingQuestion) {
+      const updatedQuestion = {
+        ...editingQuestion,
+        image: imagePreview || editingQuestion.image,
+      };
       setQuestions(
         questions.map((q) =>
-          q.id === editingQuestion.id ? editingQuestion : q
+          q.id === editingQuestion.id ? updatedQuestion : q
         )
       );
       setEditingQuestion(null);
       setIsEditDialogOpen(false);
+      setSelectedImageFile(null);
+      setImagePreview(null);
     }
   };
 
@@ -276,7 +310,7 @@ export default function page() {
                         }
                       />
                     </div>
-                  </div>
+                  
 
                   <div>
                     <Label htmlFor="edit-correct_option">Correct Option</Label>
@@ -300,6 +334,36 @@ export default function page() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div>
+                    <Label htmlFor="optional_image">Attach Image (optional)</Label>
+                    <Input
+                      type="file"
+                      id="optional_image"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="cursor-pointer"
+                    />
+                    {(imagePreview || editingQuestion?.image) && (
+                      <div className="mt-3 relative inline-block">
+                        <img
+                          src={imagePreview || editingQuestion?.image}
+                          alt="Question preview"
+                          className="max-w-full h-auto max-h-48 rounded border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2 h-6 w-6"
+                          onClick={handleRemoveImage}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  </div>
                 </div>
               )}
 
@@ -309,6 +373,8 @@ export default function page() {
                   onClick={() => {
                     setIsEditDialogOpen(false);
                     setEditingQuestion(null);
+                    setSelectedImageFile(null);
+                    setImagePreview(null);
                   }}
                 >
                   Cancel
@@ -366,7 +432,7 @@ export default function page() {
                 <TableHead className="w-24">Option C</TableHead>
                 <TableHead className="w-24">Option D</TableHead>
                 <TableHead className="w-24">Correct Option</TableHead>
-
+                <TableHead className="w-16 text-center">Image</TableHead>
                 <TableHead className="w-24 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -403,6 +469,13 @@ export default function page() {
                     <TableCell>
                       <Badge variant="default">{question.correct_option}</Badge>
                     </TableCell>
+                    <TableCell className="text-center">
+                      {question.image ? (
+                        <ImageIcon className="h-4 w-4 text-green-600 mx-auto" />
+                      ) : (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
                         <Button
@@ -411,6 +484,7 @@ export default function page() {
                           className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                           onClick={() => {
                             setEditingQuestion(question);
+                            setImagePreview(question.image || null);
                             setIsEditDialogOpen(true);
                           }}
                         >

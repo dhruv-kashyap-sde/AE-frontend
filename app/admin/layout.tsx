@@ -39,7 +39,9 @@ const layout = ({ children }: { children: React.ReactNode }) => {
         <div className="p-4 border-b">
           <div className="flex items-center gap-2">
             <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
+              <Link href="/">
               <LayoutDashboard className="h-6 w-6 text-primary-foreground" />
+              </Link>
             </div>
             {sidebarOpen && <span className="font-bold text-xl">Admin</span>}
           </div>

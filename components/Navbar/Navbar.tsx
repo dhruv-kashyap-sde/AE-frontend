@@ -4,9 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   Menu,
-  X,
-  BookOpen,
-  ChevronDown,
   Building2,
   Landmark,
   Train,
@@ -30,14 +27,22 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { cn } from "@/lib/utils";
-import React from "react";
-import { Separator } from "../ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-
-  const toggleMenu = () => setIsOpen(!isOpen);
 
   const categories = [
     { id: "Bank", name: "Bank", icon: Building2 },
@@ -115,7 +120,7 @@ export default function Navbar() {
           <div className="flex gap-10 items-center">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
+              <div className="h-10 w-10 rounded-lg flex items-center justify-center">
                 {/* <BookOpen className="h-6 w-6 text-primary-foreground" /> */}
                 <Image
                   src={logoImage}
@@ -209,6 +214,7 @@ export default function Navbar() {
               </NavigationMenu>
             </div>
           </div>
+
           {/* CTA Buttons - Desktop */}
           <div className="hidden md:flex items-center gap-4">
             <Link href="/login">
@@ -220,44 +226,122 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="md:hidden p-2 rounded-md hover:bg-accent"
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <button
+                className="md:hidden p-2 rounded-md hover:bg-accent"
+                aria-label="Toggle menu"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+            </SheetTrigger>
+            <SheetContent className="w-[80%]  sm:w-100">
+              <SheetHeader>
+                <SheetTitle>
+                  <Link
+                    href="/"
+                    className="flex items-center gap-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                      <Image
+                        src={logoImage}
+                        alt="Logo"
+                        className="rounded-full object-cover"
+                      />
+                    </div>
+                    <span className="text-lg font-bold">AccurateExam</span>
+                  </Link>
+                </SheetTitle>
+              </SheetHeader>
 
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden py-4 space-y-4 border-t">
-            <Link
-              href="/about"
-              className="block px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
-              onClick={toggleMenu}
-            >
-              About
-            </Link>
-            <Link
-              href="/contact"
-              className="block px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
-              onClick={toggleMenu}
-            >
-              Contact
-            </Link>
-            <div className="px-4 pt-4 space-y-2 border-t">
-              <Link href="/login" onClick={toggleMenu}>
-                <Button variant="outline" className="w-full">
-                  Login
-                </Button>
-              </Link>
-              <Link href="/signup" onClick={toggleMenu}>
-                <Button className="w-full">Get Started</Button>
-              </Link>
-            </div>
-          </div>
-        )}
+              <div className=" px-4 overflow-auto scrollbar flex flex-col gap-6">
+                {/* About Link */}
+                <Link
+                  href="/about"
+                  className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  About
+                </Link>
+
+                {/* Exams Accordion */}
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="exams" className="border-none">
+                    <AccordionTrigger className="text-base font-medium text-muted-foreground hover:text-foreground py-0 hover:no-underline">
+                      Exams
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4 pt-4">
+                        {categories.map((cat) => (
+                          <div key={cat.id} className="space-y-2">
+                            <Link
+                              href={`/exams/${cat.id.toLowerCase()}`}
+                              className="flex items-center gap-2 font-semibold text-sm hover:text-primary transition-colors"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              <cat.icon className="h-4 w-4 text-primary" />
+                              {cat.name}
+                            </Link>
+                            <div className="ml-6 space-y-1">
+                              {exams[cat.id as keyof typeof exams]
+                                ?.slice(0, 3)
+                                .map((exam) => (
+                                  <Link
+                                    key={exam.name}
+                                    href={`/exam/${exam.name
+                                      .toLowerCase()
+                                      .replace(/\s+/g, "-")}`}
+                                    className="block text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+                                    onClick={() => setIsOpen(false)}
+                                  >
+                                    {exam.name}
+                                  </Link>
+                                ))}
+                              {(exams[cat.id as keyof typeof exams]?.length ||
+                                0) > 3 && (
+                                <Link
+                                  href={`/exams/${cat.id.toLowerCase()}`}
+                                  className="block text-sm text-primary hover:underline py-1"
+                                  onClick={() => setIsOpen(false)}
+                                >
+                                  View all →
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+
+                {/* Contact Link */}
+                <Link
+                  href="/contact"
+                  className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Contact
+                </Link>
+
+                {/* CTA Buttons */}
+                <div className="pt-6 space-y-3 border-t">
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/login" onClick={() => setIsOpen(false)}>
+                      Login
+                    </Link>
+                  </Button>
+                  <Button asChild className="w-full">
+                    <Link href="/signup" onClick={() => setIsOpen(false)}>
+                      Get Started
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </nav>
   );
