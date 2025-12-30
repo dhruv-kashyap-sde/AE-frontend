@@ -20,12 +20,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen flex flex-col scrollbar dark">
+      <div className="min-h-screen flex flex-col scrollbar dark">
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
-      </body>
-    </html>
+      </div>
   );
 }

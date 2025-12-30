@@ -2,35 +2,50 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { BookOpen } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { BookOpen, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
+import { authApi } from "@/lib/auth-api"
+import { useAuth } from "@/context/AuthContext"
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: ""
-  })
+  const router = useRouter()
+  const { login } = useAuth()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const response = await authApi.login(email, password)
+      if (response.success && response.data) {
+        toast.success('Login successful!')
+        await login(response.data.user)
+        router.push('/')
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Invalid email or password')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    // Handle login logic here
-    console.log("Login attempt:", formData)
-    toast.info("Login functionality will be implemented with backend integration")
+  const handleGoogleLogin = () => {
+    const googleAuthUrl = authApi.getGoogleAuthUrl()
+    window.location.href = googleAuthUrl
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-muted/50">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
           <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
             <BookOpen className="h-7 w-7 text-primary-foreground" />
@@ -46,28 +61,23 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">
-                  Email Address
-                </label>
-                <input
+                <Label htmlFor="email">Email Address</Label>
+                <Input
                   type="email"
                   id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="you@example.com"
+                  disabled={loading}
                 />
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </label>
+                  <Label htmlFor="password">Password</Label>
                   <Link 
                     href="/forgot-password" 
                     className="text-sm text-primary hover:underline"
@@ -75,20 +85,29 @@ export default function LoginPage() {
                     Forgot password?
                   </Link>
                 </div>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="Enter your password"
+                    disabled={loading}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
-                Sign In
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
 
@@ -105,7 +124,7 @@ export default function LoginPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-4 mt-6">
-                <Button variant="outline" type="button">
+                <Button variant="outline" type="button" onClick={handleGoogleLogin}>
                   <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
@@ -130,7 +149,7 @@ export default function LoginPage() {
             </div>
 
             <p className="text-center text-sm text-muted-foreground mt-6">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/signup" className="text-primary font-medium hover:underline">
                 Sign up
               </Link>
