@@ -3,33 +3,33 @@ import React, { useState } from "react";
 import {
   Home,
   BookOpen,
-  Users,
   LogOut,
   LayoutDashboard,
   ChevronLeft,
   ChevronRight,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { AdminRoute } from "@/components/ProtectedRoute";
+import { UserRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 
-const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isActive = (path: string) => {
-    if (path === "/admin") {
-      return pathname === "/admin";
+    if (path === "/dashboard") {
+      return pathname === "/dashboard";
     }
     return pathname?.startsWith(path);
   };
 
   const handleLogout = async () => {
     await logout();
-    router.push("/login?admin=true");
+    router.push("/login");
   };
 
   return (
@@ -47,15 +47,15 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               <LayoutDashboard className="h-6 w-6 text-primary-foreground" />
               </Link>
             </div>
-            {sidebarOpen && <span className="font-bold text-xl">Admin</span>}
+            {sidebarOpen && <span className="font-bold text-xl">Dashboard</span>}
           </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-2">
-          <Link href="/admin">
+          <Link href="/dashboard">
             <button
               className={`w-full flex items-center mb-3 gap-3 p-3 rounded-lg transition-colors ${
-                isActive("/admin")
+                isActive("/dashboard")
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-accent"
               }`}
@@ -65,10 +65,10 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             </button>
           </Link>
 
-          <Link href="/admin/exam">
+          <Link href="/dashboard/exam">
             <button
               className={`w-full flex items-center mb-3 gap-3 p-3 rounded-lg transition-colors ${
-                isActive("/admin/exam")
+                isActive("/dashboard/exam")
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-accent"
               }`}
@@ -78,16 +78,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             </button>
           </Link>
 
-          <Link href="/admin/users">
+          <Link href="/dashboard/profile">
             <button
               className={`w-full flex items-center mb-3 gap-3 p-3 rounded-lg transition-colors ${
-                isActive("/admin/users")
+                isActive("/dashboard/profile")
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-accent"
               }`}
             >
-              <Users className="h-5 w-5 shrink-0" />
-              {sidebarOpen && <span className=" text-sm">Users</span>}
+              <User className="h-5 w-5 shrink-0" />
+              {sidebarOpen && <span className=" text-sm">Profile</span>}
             </button>
           </Link>
         </nav>
@@ -122,10 +122,10 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
+export default function DashboardLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <AdminRoute>
-      <AdminLayout>{children}</AdminLayout>
-    </AdminRoute>
+    <UserRoute>
+      <DashboardLayout>{children}</DashboardLayout>
+    </UserRoute>
   );
 }

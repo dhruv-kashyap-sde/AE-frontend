@@ -2,6 +2,7 @@ import "./globals.css";
 import 'katex/dist/katex.min.css'
 import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from "@/context/AuthContext"
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: "AccurateExam - Premium Exam Preparation Platform",
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col scrollbar dark">
+        {/* <Analytics /> */}
         <AuthProvider>
           <main className="flex-1">{children}</main>
           <Toaster position="top-center" richColors />

@@ -27,9 +27,15 @@ export default function AuthCallbackPage() {
           // Fetch user profile (cookies were set by the server)
           const response = await authApi.getProfile()
           if (response.success && response.data.user) {
-            await login(response.data.user)
+            const user = response.data.user
+            await login(user)
             toast.success('Successfully logged in!')
-            router.push('/')
+            // Redirect based on role
+            if (user.role === 'admin') {
+              router.push('/admin')
+            } else {
+              router.push('/dashboard')
+            }
           } else {
             throw new Error('Failed to get user profile')
           }

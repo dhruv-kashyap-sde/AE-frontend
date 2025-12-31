@@ -12,8 +12,9 @@ import { BookOpen, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 import { authApi } from "@/lib/auth-api"
 import { useAuth } from "@/context/AuthContext"
+import { AuthRedirect } from "@/components/AuthRedirect"
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter()
   const { login } = useAuth()
   const [step, setStep] = useState<'credentials' | 'otp'>('credentials')
@@ -82,7 +83,7 @@ export default function SignupPage() {
       if (response.success && response.data) {
         toast.success('Account created successfully!')
         await login(response.data.user)
-        router.push('/')
+        router.push('/dashboard')
       }
     } catch (error: any) {
       toast.error(error.message || 'Invalid OTP')
@@ -329,5 +330,13 @@ export default function SignupPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <AuthRedirect>
+      <SignupForm />
+    </AuthRedirect>
   )
 }
