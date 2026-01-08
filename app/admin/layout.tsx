@@ -14,6 +14,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { AdminRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 
+// Note: metadata export is not allowed in client components
+// Admin pages are protected and should not be indexed anyway
+
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();

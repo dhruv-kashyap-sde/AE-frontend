@@ -1,9 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle2, Users, Target, Award } from "lucide-react"
+import type { Metadata } from "next"
 
-export const metadata = {
-  title: "About Us - AccurateExam",
-  description: "Learn about AccurateExam's mission to provide quality exam preparation resources for students worldwide.",
+export const metadata: Metadata = {
+  title: "About Us",
+  description: "Learn about AccurateExam's mission to provide quality exam preparation resources for students worldwide. Founded in 2020, serving 50,000+ students.",
+  keywords: [
+    "about AccurateExam",
+    "exam preparation company",
+    "online education platform",
+    "mock test provider",
+    "student success stories",
+  ],
+  openGraph: {
+    title: "About AccurateExam - Our Mission & Story",
+    description: "Transforming exam preparation through technology and expertise. Serving 50,000+ students with 1000+ mock tests.",
+    type: "website",
+  },
+  alternates: {
+    canonical: "/about",
+  },
 }
 
 export default function AboutPage() {

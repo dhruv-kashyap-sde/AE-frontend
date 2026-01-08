@@ -1,18 +1,10 @@
 "use client";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap } from "lucide-react";
+import { Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import Autoplay from "embla-carousel-autoplay"
-import React from "react";
 
 const TestPaperCarousel = () => {
   const mockTests = [
@@ -78,49 +70,131 @@ const TestPaperCarousel = () => {
     },
   ];
 
-  const plugin = React.useRef(
-    Autoplay({ delay: 2000, stopOnInteraction: true })
-  )
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [visibleCards, setVisibleCards] = useState(4);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  // Calculate visible cards based on screen width
+  useEffect(() => {
+    const updateVisibleCards = () => {
+      if (window.innerWidth < 640) {
+        setVisibleCards(1);
+      } else if (window.innerWidth < 768) {
+        setVisibleCards(2);
+      } else if (window.innerWidth < 1024) {
+        setVisibleCards(3);
+      } else {
+        setVisibleCards(4);
+      }
+    };
+
+    updateVisibleCards();
+    window.addEventListener("resize", updateVisibleCards);
+    return () => window.removeEventListener("resize", updateVisibleCards);
+  }, []);
+
+  const maxIndex = Math.max(0, mockTests.length - visibleCards);
+
+  const nextSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+  }, [maxIndex]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
+  }, [maxIndex]);
+
+  // Auto-slide functionality
+  useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isPaused, nextSlide]);
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current !== null && touchEndX.current !== null) {
+      const diff = touchStartX.current - touchEndX.current;
+      const minSwipeDistance = 50;
+
+      if (Math.abs(diff) > minSwipeDistance) {
+        if (diff > 0) {
+          nextSlide();
+        } else {
+          prevSlide();
+        }
+      }
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
+    
+    // Resume auto-slide after 3 seconds of no interaction
+    setTimeout(() => setIsPaused(false), 3000);
+  };
+
+  const cardWidth = 100 / visibleCards;
 
   return (
     <div className="relative">
-
-      <Carousel
-        opts={{
-          align: "start",
-          loop: true,
-        }}
-        plugins={[plugin.current]}
-        onMouseEnter={plugin.current.stop}
-        onMouseLeave={plugin.current.reset}
-        className="w-full"
+      {/* Carousel Container */}
+      <div
+        className="overflow-hidden"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
-        <CarouselContent className="-ml-4">
+        <div
+          className="flex transition-transform duration-500 ease-out"
+          style={{
+            transform: `translateX(-${currentIndex * cardWidth}%)`,
+          }}
+        >
           {mockTests.map((test) => (
-            <CarouselItem key={test.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+            <div
+              key={test.id}
+              className="shrink-0 px-2"
+              style={{ width: `${cardWidth}%` }}
+            >
               <Card className="relative bg-background hover:shadow-xl transition-shadow h-full">
                 {test.isNew && (
                   <Badge className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1">
                     NEW
                   </Badge>
                 )}
-                
+
                 <CardHeader className="space-y-4">
                   <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
                     <Zap className="h-6 w-6 text-primary-foreground fill-current" />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <h4 className="font-bold text-lg leading-tight text-foreground ">
+                    <h4 className="font-bold text-lg leading-tight text-foreground line-clamp-2">
                       {test.title}
                     </h4>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground line-clamp-1">
                       {test.subtitle}
                     </p>
                   </div>
 
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className="bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium w-fit"
                   >
                     {test.attempts} Attempts
@@ -150,13 +224,51 @@ const TestPaperCarousel = () => {
                   </Link>
                 </CardContent>
               </Card>
-            </CarouselItem>
+            </div>
           ))}
-        </CarouselContent>
+        </div>
+      </div>
 
-        <CarouselPrevious  />
-        <CarouselNext  />
-      </Carousel>
+      {/* Navigation Controls */}
+      <div className="flex items-center justify-center sm:justify-end gap-3 mt-6">
+        {/* Dot Indicators */}
+        <div className="flex items-center gap-2">
+          {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                currentIndex === index
+                  ? "w-6 bg-primary-foreground"
+                  : "w-2 bg-primary-foreground/40 hover:bg-primary-foreground/60"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Arrow Buttons */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={prevSlide}
+            className="h-10 w-10 rounded-full bg-background/90 hover:bg-background border-0 shadow-md"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={nextSlide}
+            className="h-10 w-10 rounded-full bg-background/90 hover:bg-background border-0 shadow-md"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

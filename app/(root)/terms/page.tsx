@@ -1,8 +1,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import type { Metadata } from "next"
 
-export const metadata = {
-  title: "Terms of Service - AccurateExam",
-  description: "Read our terms of service and understand your rights and obligations when using AccurateExam.",
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Read our terms of service and understand your rights and obligations when using AccurateExam platform.",
+  keywords: [
+    "terms of service",
+    "user agreement",
+    "terms and conditions",
+    "AccurateExam terms",
+    "legal terms",
+  ],
+  openGraph: {
+    title: "Terms of Service - AccurateExam",
+    description: "Read our terms of service and understand your rights and obligations when using AccurateExam.",
+    type: "website",
+  },
+  alternates: {
+    canonical: "/terms",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function TermsPage() {

@@ -1,8 +1,28 @@
 import { Card, CardContent } from "@/components/ui/card"
+import type { Metadata } from "next"
 
-export const metadata = {
-  title: "Privacy Policy - AccurateExam",
-  description: "Learn how AccurateExam collects, uses, and protects your personal information.",
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Learn how AccurateExam collects, uses, and protects your personal information. Read our comprehensive privacy policy.",
+  keywords: [
+    "privacy policy",
+    "data protection",
+    "user privacy",
+    "AccurateExam privacy",
+    "personal information",
+  ],
+  openGraph: {
+    title: "Privacy Policy - AccurateExam",
+    description: "Learn how AccurateExam collects, uses, and protects your personal information.",
+    type: "website",
+  },
+  alternates: {
+    canonical: "/privacy",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function PrivacyPage() {

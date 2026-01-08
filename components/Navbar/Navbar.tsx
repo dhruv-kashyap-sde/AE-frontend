@@ -15,6 +15,9 @@ import {
   Cog,
   Trophy,
   GraduationCap,
+  LogOut,
+  LayoutDashboard,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -40,9 +43,39 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import type { User as UserType } from "@/types/auth";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user: authUser, isAuthenticated, logout, loading } = useAuth();
+  const user = authUser as UserType | null;
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+    setIsOpen(false);
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const categories = [
     { id: "Bank", name: "Bank", icon: Building2 },
@@ -217,12 +250,64 @@ export default function Navbar() {
 
           {/* CTA Buttons - Desktop */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Login</Button>
-            </Link>
-            <Link href="/signup">
-              <Button>Get Started</Button>
-            </Link>
+            {loading ? (
+              <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+            ) : isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.avatar || ""} alt={user.name} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.avatar || ""} alt={user.name} />
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {getInitials(user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href={user.role === "admin" ? "/admin" : "/dashboard"} className="cursor-pointer">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer text-destructive focus:text-destructive"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost">Login</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button>Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -325,18 +410,67 @@ export default function Navbar() {
                   Contact
                 </Link>
 
-                {/* CTA Buttons */}
+                {/* CTA Buttons / User Profile */}
                 <div className="pt-6 space-y-3 border-t">
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/login" onClick={() => setIsOpen(false)}>
-                      Login
-                    </Link>
-                  </Button>
-                  <Button asChild className="w-full">
-                    <Link href="/signup" onClick={() => setIsOpen(false)}>
-                      Get Started
-                    </Link>
-                  </Button>
+                  {loading ? (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted animate-pulse">
+                      <div className="h-10 w-10 rounded-full bg-muted-foreground/20" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 w-24 bg-muted-foreground/20 rounded" />
+                        <div className="h-3 w-32 bg-muted-foreground/20 rounded" />
+                      </div>
+                    </div>
+                  ) : isAuthenticated && user ? (
+                    <>
+                      {/* User Info */}
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={user.avatar || ""} alt={user.name} />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {getInitials(user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{user.name}</span>
+                          <span className="text-xs text-muted-foreground">{user.email}</span>
+                        </div>
+                      </div>
+
+                      {/* Dashboard Button */}
+                      <Button asChild variant="outline" className="w-full">
+                        <Link
+                          href={user.role === "admin" ? "/admin" : "/dashboard"}
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </Link>
+                      </Button>
+
+                      {/* Logout Button */}
+                      <Button
+                        variant="destructive"
+                        className="w-full"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button asChild variant="outline" className="w-full">
+                        <Link href="/login" onClick={() => setIsOpen(false)}>
+                          Login
+                        </Link>
+                      </Button>
+                      <Button asChild className="w-full">
+                        <Link href="/signup" onClick={() => setIsOpen(false)}>
+                          Get Started
+                        </Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>

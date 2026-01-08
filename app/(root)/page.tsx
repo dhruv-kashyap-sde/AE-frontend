@@ -182,9 +182,9 @@ export default function HomePage() {
                 <span>Trusted by 50,000+ students in India</span>
               </div>
 
-              <h1 className="text-5xl text-center lg:text-left md:text-6xl font-bold tracking-tight">
+              <h1 className="text-3xl text-center  lg:text-left md:text-4xl font-bold tracking-tight">
                 Practice hard with <br />
-                <span className="gradient-text"> Accurate Exam</span>
+                <span className="gradient-text text-5xl text-nowrap"> Accurate Exam</span>
               </h1>
 
               <p className="text-center lg:text-left text-muted-foreground max-w-2xl">

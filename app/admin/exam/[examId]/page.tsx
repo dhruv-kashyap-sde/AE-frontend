@@ -16,6 +16,7 @@ import {
   PlusIcon,
   TrashIcon,
   PencilIcon,
+  FolderPlusIcon,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -180,7 +181,7 @@ export default function page({ params }: { params: Promise<{ examId: string }> }
           <Dialog open={batchDialog} onOpenChange={setBatchDialog}>
             <DialogTrigger asChild>
               <Button variant="secondary">
-                <Plus className="mr-2 h-4 w-4" /> Create Batch
+                <Plus className="mr-2 h-4 w-4" /> Create Folder
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -273,7 +274,7 @@ export default function page({ params }: { params: Promise<{ examId: string }> }
               <CardHeader className="space-y-3 pb-3">
                 <div className="flex items-start justify-between">
                   <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <BookOpen className="h-6 w-6 text-primary" />
+                    <FolderPlusIcon className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex gap-1">
                     <Button

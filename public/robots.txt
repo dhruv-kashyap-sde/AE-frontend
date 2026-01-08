@@ -1,0 +1,28 @@
+# AccurateExam Robots.txt
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+
+# Allow all public pages
+Allow: /
+Allow: /about
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /exams
+
+# Disallow admin and auth pages
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /dashboard
+Disallow: /dashboard/*
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /auth
+
+# Disallow API routes
+Disallow: /api
+
+# Sitemap location (update this when sitemap is generated)
+Sitemap: https://accurateexam.com/sitemap.xml
