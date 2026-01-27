@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BookOpen, ArrowLeft, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
-import { authApi } from "@/lib/auth-api"
 
 export default function ForgotPasswordForm() {
   const router = useRouter()
@@ -23,19 +22,6 @@ export default function ForgotPasswordForm() {
 
   const handleRequestOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setLoading(true)
-
-    try {
-      await authApi.requestPasswordReset(email)
-      toast.success('If an account exists with this email, you will receive a password reset OTP.')
-      setStep('otp')
-    } catch (error: any) {
-      // Always show success to prevent email enumeration
-      toast.success('If an account exists with this email, you will receive a password reset OTP.')
-      setStep('otp')
-    } finally {
-      setLoading(false)
-    }
   }
 
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -53,15 +39,6 @@ export default function ForgotPasswordForm() {
 
     setLoading(true)
 
-    try {
-      await authApi.resetPassword(email, otp, newPassword)
-      toast.success('Password reset successful!')
-      setStep('success')
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to reset password. Please check your OTP.')
-    } finally {
-      setLoading(false)
-    }
   }
 
   return (

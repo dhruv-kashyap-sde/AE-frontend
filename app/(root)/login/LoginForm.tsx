@@ -9,15 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BookOpen, Eye, EyeOff, Shield } from "lucide-react"
 import { toast } from "sonner"
-import { authApi } from "@/lib/auth-api"
-import { useAuth } from "@/context/AuthContext"
-import { AuthRedirect } from "@/components/AuthRedirect"
-import { Suspense } from "react"
 
 function LoginFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -27,48 +22,11 @@ function LoginFormContent() {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setLoading(true)
-
-    try {
-      const response = await authApi.login(email, password)
-      if (response.success && response.data) {
-        const user = response.data.user
-        
-        // Check role-based access
-        if (isAdminLogin && user.role !== 'admin') {
-          toast.error('Access denied. Admin credentials required.')
-          setLoading(false)
-          return
-        }
-        
-        if (!isAdminLogin && user.role === 'admin') {
-          // Admin trying to login through regular login - redirect to admin login
-          toast.info('Please use admin login')
-          router.push('/login?admin=true')
-          setLoading(false)
-          return
-        }
-        
-        toast.success('Login successful!')
-        await login(user)
-        
-        // Redirect based on role
-        if (user.role === 'admin') {
-          router.push('/admin')
-        } else {
-          router.push('/dashboard')
-        }
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Invalid email or password')
-    } finally {
-      setLoading(false)
-    }
+   
   }
 
   const handleGoogleLogin = () => {
-    const googleAuthUrl = authApi.getGoogleAuthUrl()
-    window.location.href = googleAuthUrl
+
   }
 
   return (
@@ -201,44 +159,9 @@ function LoginFormContent() {
   )
 }
 
-function LoginFormFallback() {
-  return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-muted/50">
-      <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
-            <BookOpen className="h-7 w-7 text-primary-foreground" />
-          </div>
-          <span className="text-2xl font-bold">AccurateExam</span>
-        </div>
-        <Card>
-          <CardHeader className="space-y-1">
-            <div className="h-8 bg-muted rounded animate-pulse mx-auto w-40" />
-            <div className="h-4 bg-muted rounded animate-pulse mx-auto w-60 mt-2" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="h-4 bg-muted rounded animate-pulse w-24" />
-              <div className="h-10 bg-muted rounded animate-pulse" />
-            </div>
-            <div className="space-y-2">
-              <div className="h-4 bg-muted rounded animate-pulse w-20" />
-              <div className="h-10 bg-muted rounded animate-pulse" />
-            </div>
-            <div className="h-10 bg-muted rounded animate-pulse" />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  )
-}
 
 export default function LoginForm() {
   return (
-    <AuthRedirect>
-      <Suspense fallback={<LoginFormFallback />}>
-        <LoginFormContent />
-      </Suspense>
-    </AuthRedirect>
+    <LoginFormContent />
   )
 }

@@ -11,8 +11,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { AdminRoute } from "@/components/ProtectedRoute";
-import { useAuth } from "@/context/AuthContext";
 
 // Note: metadata export is not allowed in client components
 // Admin pages are protected and should not be indexed anyway
@@ -20,7 +18,6 @@ import { useAuth } from "@/context/AuthContext";
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isActive = (path: string) => {
@@ -31,7 +28,6 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const handleLogout = async () => {
-    await logout();
     router.push("/login?admin=true");
   };
 
@@ -127,8 +123,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
 export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <AdminRoute>
+    <>
       <AdminLayout>{children}</AdminLayout>
-    </AdminRoute>
+    </>
   );
 }

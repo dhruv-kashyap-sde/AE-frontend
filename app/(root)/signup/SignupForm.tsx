@@ -10,13 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { BookOpen, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
-import { authApi } from "@/lib/auth-api"
-import { useAuth } from "@/context/AuthContext"
-import { AuthRedirect } from "@/components/AuthRedirect"
 
 function SignupFormContent() {
   const router = useRouter()
-  const { login } = useAuth()
   const [step, setStep] = useState<'credentials' | 'otp'>('credentials')
   const [formData, setFormData] = useState({
     name: "",
@@ -53,48 +49,15 @@ function SignupFormContent() {
       return
     }
 
-    setLoading(true)
 
-    try {
-      const response = await authApi.requestSignupOtp(formData.email)
-      if (response.success) {
-        toast.success(response.message || 'OTP sent to your email')
-        setStep('otp')
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send OTP')
-    } finally {
-      setLoading(false)
-    }
   }
 
   const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setLoading(true)
 
-    try {
-      const response = await authApi.verifySignupOtp(
-        formData.name,
-        formData.email,
-        formData.password,
-        formData.otp
-      )
-      
-      if (response.success && response.data) {
-        toast.success('Account created successfully!')
-        await login(response.data.user)
-        router.push('/dashboard')
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Invalid OTP')
-    } finally {
-      setLoading(false)
-    }
   }
 
   const handleGoogleSignup = () => {
-    const googleAuthUrl = authApi.getGoogleAuthUrl()
-    window.location.href = googleAuthUrl
   }
 
   return (
@@ -261,17 +224,7 @@ function SignupFormContent() {
                   type="button"
                   variant="link"
                   className="w-full"
-                  onClick={async () => {
-                    setLoading(true)
-                    try {
-                      await authApi.requestSignupOtp(formData.email)
-                      toast.success('OTP resent to your email')
-                    } catch (error: any) {
-                      toast.error(error.message || 'Failed to resend OTP')
-                    } finally {
-                      setLoading(false)
-                    }
-                  }}
+                  
                   disabled={loading}
                 >
                   Didn&apos;t receive the code? Resend OTP
@@ -335,8 +288,8 @@ function SignupFormContent() {
 
 export default function SignupForm() {
   return (
-    <AuthRedirect>
+    <>
       <SignupFormContent />
-    </AuthRedirect>
+    </>
   )
 }
