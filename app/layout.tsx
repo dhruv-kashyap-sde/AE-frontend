@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { Analytics } from "@vercel/analytics/next"
 import SessionProvider from "@/components/providers/SessionProvider"
 import type { Metadata, Viewport } from "next"
+import { ThemeProvider } from "@/components/dark mode/theme-provider";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://accurateexam.com"
 
@@ -96,13 +97,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col scrollbar dark">
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col scrollbar">
+         <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
         <SessionProvider>
           {/* <Analytics /> */}
           <main className="flex-1">{children}</main>
           <Toaster position="top-center" richColors />
         </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -56,6 +56,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 import AuthDialog from "@/components/AuthDialog";
+import { ModeToggle } from "../dark mode/toggle-theme";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -66,6 +67,10 @@ export default function Navbar() {
 
   const user = session?.user;
   const isLoggedIn = status === "authenticated" && !!user;
+  const isAdmin = user?.role === "admin";
+
+  // Get the correct dashboard URL based on role
+  const dashboardUrl = isAdmin ? "/admin" : "/dashboard";
 
   const openAuthDialog = (mode: "login" | "signup") => {
     setAuthMode(mode);
@@ -288,17 +293,19 @@ export default function Navbar() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                    <Link href={dashboardUrl} className="flex items-center gap-2 cursor-pointer">
                       <LayoutDashboard className="h-4 w-4" />
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/tests" className="flex items-center gap-2 cursor-pointer">
-                      <ClipboardList className="h-4 w-4" />
-                      My Tests
-                    </Link>
-                  </DropdownMenuItem>
+                  {!isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/tests" className="flex items-center gap-2 cursor-pointer">
+                        <ClipboardList className="h-4 w-4" />
+                        My Tests
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
@@ -312,6 +319,7 @@ export default function Navbar() {
             ) : (
               <>
                 <Button onClick={() => openAuthDialog("login")}>Login / Signup</Button>
+                <ModeToggle />
               </>
             )}
           </div>
@@ -431,26 +439,31 @@ export default function Navbar() {
                         <div className="flex flex-col">
                           <p className="text-sm font-medium">{user?.name}</p>
                           <p className="text-xs text-muted-foreground">{user?.email}</p>
+                          {isAdmin && (
+                            <span className="text-xs text-destructive font-medium">Administrator</span>
+                          )}
                         </div>
                       </div>
                       
                       {/* Navigation Links */}
                       <Link
-                        href="/dashboard"
+                        href={dashboardUrl}
                         className="flex items-center gap-3 py-2 px-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                         onClick={() => setIsOpen(false)}
                       >
                         <LayoutDashboard className="h-4 w-4" />
                         Dashboard
                       </Link>
-                      <Link
-                        href="/dashboard/tests"
-                        className="flex items-center gap-3 py-2 px-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <ClipboardList className="h-4 w-4" />
-                        My Tests
-                      </Link>
+                      {!isAdmin && (
+                        <Link
+                          href="/dashboard/tests"
+                          className="flex items-center gap-3 py-2 px-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <ClipboardList className="h-4 w-4" />
+                          My Tests
+                        </Link>
+                      )}
                       
                       {/* Logout Button */}
                       <Button

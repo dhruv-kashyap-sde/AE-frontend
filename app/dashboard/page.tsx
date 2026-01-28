@@ -15,6 +15,11 @@ export default function DashboardPage() {
     redirect("/login")
   }
 
+  // Redirect admin users to admin dashboard
+  if (status === "authenticated" && session?.user?.role === "admin") {
+    redirect("/admin")
+  }
+
   // Show loading state
   if (status === "loading") {
     return (

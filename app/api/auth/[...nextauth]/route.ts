@@ -1,14 +1,16 @@
 /**
  * NextAuth Configuration
  * 
- * Handles Google OAuth authentication with custom MongoDB user storage.
- * Creates user accounts automatically on first login.
+ * Handles Google OAuth authentication for users and
+ * credentials authentication for admins.
  */
 
 import NextAuth, { NextAuthOptions, Session } from "next-auth"
 import { JWT } from "next-auth/jwt"
 import GoogleProvider from "next-auth/providers/google"
+import CredentialsProvider from "next-auth/providers/credentials"
 import { findOrCreateUser } from "@/lib/models/user"
+import { verifyAdminCredentials } from "@/lib/models/admin"
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!
@@ -25,6 +27,36 @@ export const authOptions: NextAuthOptions = {
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
     }),
+    CredentialsProvider({
+      id: "admin-login",
+      name: "Admin Login",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email and password are required")
+        }
+
+        const admin = await verifyAdminCredentials(
+          credentials.email,
+          credentials.password
+        )
+
+        if (!admin) {
+          throw new Error("Invalid email or password")
+        }
+
+        // Return admin data for JWT
+        return {
+          id: admin.id,
+          name: admin.name,
+          email: admin.email,
+          role: "admin",
+        }
+      },
+    }),
   ],
 
   callbacks: {
@@ -33,9 +65,14 @@ export const authOptions: NextAuthOptions = {
      * Called when user signs in - creates account if first time
      */
     async signIn({ user, account, profile }) {
+      // Admin login via credentials
+      if (account?.provider === "admin-login") {
+        return true
+      }
+
+      // Google OAuth for regular users
       if (account?.provider === "google" && profile) {
         try {
-          // Find or create user in our database
           await findOrCreateUser({
             name: profile.name || user.name || "User",
             email: profile.email || user.email!,
@@ -58,8 +95,18 @@ export const authOptions: NextAuthOptions = {
      * Add user data to token
      */
     async jwt({ token, user, account, profile }) {
-      // Initial sign in
-      if (account && profile) {
+      // Admin login - user object comes from authorize()
+      if (account?.provider === "admin-login" && user) {
+        token.id = user.id
+        token.name = user.name
+        token.email = user.email
+        token.role = "admin"
+        token.provider = "credentials"
+        return token
+      }
+
+      // Google OAuth - initial sign in
+      if (account?.provider === "google" && profile) {
         const dbUser = await findOrCreateUser({
           name: profile.name || user?.name || "User",
           email: profile.email || user?.email || "",
@@ -72,6 +119,7 @@ export const authOptions: NextAuthOptions = {
         token.name = dbUser.name
         token.email = dbUser.email
         token.picture = dbUser.avatar
+        token.role = "user"
         token.provider = dbUser.provider
       }
 
@@ -88,7 +136,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.name = token.name as string
         session.user.email = token.email as string
-        session.user.image = token.picture as string
+        session.user.image = token.picture as string || ""
+        session.user.role = token.role as string || "user"
       }
       return session
     },

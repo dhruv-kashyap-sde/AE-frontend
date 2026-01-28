@@ -33,6 +33,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     redirect("/login");
   }
 
+  // Redirect admin users to admin dashboard
+  if (status === "authenticated" && session?.user?.role === "admin") {
+    redirect("/admin");
+  }
+
   const user = session?.user;
 
   const isActive = (path: string) => {

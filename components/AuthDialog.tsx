@@ -47,7 +47,38 @@ export default function AuthDialog({
 
   const handleAdminLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // TODO: Implement admin email/password login
+    
+    if (!email || !password) {
+      toast.error("Please enter email and password")
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      const result = await signIn("admin-login", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        toast.error(result.error || "Invalid credentials")
+        setLoading(false)
+        return
+      }
+
+      if (result?.ok) {
+        toast.success("Welcome back, Admin!")
+        router.push("/admin")
+        onOpenChange(false)
+      }
+    } catch (error) {
+      console.error("Admin login error:", error)
+      toast.error("Failed to sign in. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleGoogleAuth = async () => {
