@@ -53,11 +53,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
-import type { User as UserType } from "@/types/auth";
+import AuthDialog from "@/components/AuthDialog";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const router = useRouter();
+
+  const openAuthDialog = (mode: "login" | "signup") => {
+    setAuthMode(mode);
+    setAuthDialogOpen(true);
+    setIsOpen(false); // Close mobile menu if open
+  };
 
   const handleLogout = async () => {
   };
@@ -246,12 +254,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             { (
               <>
-                <Link href="/login">
-                  <Button variant="ghost">Login</Button>
-                </Link>
-                <Link href="/signup">
-                  <Button>Get Started</Button>
-                </Link>
+                <Button onClick={() => openAuthDialog("login")}>Login / Signup</Button>
               </>
             )}
           </div>
@@ -360,15 +363,11 @@ export default function Navbar() {
                 <div className="pt-6 space-y-3 border-t">
                   {(
                     <>
-                      <Button asChild variant="outline" className="w-full">
-                        <Link href="/login" onClick={() => setIsOpen(false)}>
-                          Login
-                        </Link>
+                      <Button variant="outline" className="w-full" onClick={() => openAuthDialog("login")}>
+                        Login
                       </Button>
-                      <Button asChild className="w-full">
-                        <Link href="/signup" onClick={() => setIsOpen(false)}>
-                          Get Started
-                        </Link>
+                      <Button className="w-full" onClick={() => openAuthDialog("signup")}>
+                        Get Started
                       </Button>
                     </>
                   )}
@@ -378,6 +377,13 @@ export default function Navbar() {
           </Sheet>
         </div>
       </div>
+
+      {/* Auth Dialog */}
+      <AuthDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        initialMode={authMode}
+      />
     </nav>
   );
 }
