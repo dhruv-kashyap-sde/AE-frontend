@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import {
   Menu,
   Building2,
@@ -18,6 +19,7 @@ import {
   LogOut,
   LayoutDashboard,
   User,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -60,6 +62,10 @@ export default function Navbar() {
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  const user = session?.user;
+  const isLoggedIn = status === "authenticated" && !!user;
 
   const openAuthDialog = (mode: "login" | "signup") => {
     setAuthMode(mode);
@@ -68,6 +74,7 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" });
   };
 
   const getInitials = (name: string) => {
@@ -252,7 +259,57 @@ export default function Navbar() {
 
           {/* CTA Buttons - Desktop */}
           <div className="hidden md:flex items-center gap-4">
-            { (
+            {isLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                    <Avatar className="h-10 w-10 cursor-pointer border-2 border-transparent hover:border-primary transition-colors">
+                      <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials(user?.name || "User")}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex items-center gap-3 py-2">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {getInitials(user?.name || "User")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user?.name}</p>
+                        <p className="text-xs text-muted-foreground leading-none">{user?.email}</p>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/tests" className="flex items-center gap-2 cursor-pointer">
+                      <ClipboardList className="h-4 w-4" />
+                      My Tests
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
               <>
                 <Button onClick={() => openAuthDialog("login")}>Login / Signup</Button>
               </>
@@ -361,7 +418,54 @@ export default function Navbar() {
 
                 {/* CTA Buttons / User Profile */}
                 <div className="pt-6 space-y-3 border-t">
-                  {(
+                  {isLoggedIn ? (
+                    <>
+                      {/* User Info */}
+                      <div className="flex items-center gap-3 py-3 px-2 rounded-lg bg-accent/50">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {getInitials(user?.name || "User")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <p className="text-sm font-medium">{user?.name}</p>
+                          <p className="text-xs text-muted-foreground">{user?.email}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Navigation Links */}
+                      <Link
+                        href="/dashboard"
+                        className="flex items-center gap-3 py-2 px-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                      <Link
+                        href="/dashboard/tests"
+                        className="flex items-center gap-3 py-2 px-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <ClipboardList className="h-4 w-4" />
+                        My Tests
+                      </Link>
+                      
+                      {/* Logout Button */}
+                      <Button
+                        variant="outline"
+                        className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          setIsOpen(false);
+                          handleLogout();
+                        }}
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Log out
+                      </Button>
+                    </>
+                  ) : (
                     <>
                       <Button variant="outline" className="w-full" onClick={() => openAuthDialog("login")}>
                         Login

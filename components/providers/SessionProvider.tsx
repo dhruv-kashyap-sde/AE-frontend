@@ -1,0 +1,19 @@
+/**
+ * Session Provider Wrapper
+ * 
+ * Wraps the app to provide session context to client components.
+ * Required for using useSession() hook.
+ */
+
+"use client"
+
+import { SessionProvider as NextAuthSessionProvider } from "next-auth/react"
+import { ReactNode } from "react"
+
+interface Props {
+  children: ReactNode
+}
+
+export default function SessionProvider({ children }: Props) {
+  return <NextAuthSessionProvider>{children}</NextAuthSessionProvider>
+}

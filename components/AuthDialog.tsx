@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BookOpen, Eye, EyeOff, Shield } from "lucide-react"
+import { toast } from "sonner"
 
 type AuthMode = "login" | "signup" | "admin"
 
@@ -48,8 +50,16 @@ export default function AuthDialog({
     // TODO: Implement admin email/password login
   }
 
-  const handleGoogleAuth = () => {
-    // TODO: Implement Google OAuth sign-in
+  const handleGoogleAuth = async () => {
+    try {
+      setLoading(true)
+      // Redirect to dashboard after successful login
+      await signIn("google", { callbackUrl: "/dashboard" })
+    } catch (error) {
+      console.error("Google sign-in error:", error)
+      toast.error("Failed to sign in with Google. Please try again.")
+      setLoading(false)
+    }
   }
 
   const handleOpenChange = (newOpen: boolean) => {

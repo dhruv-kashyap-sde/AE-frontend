@@ -1,13 +1,30 @@
 "use client"
 
-import { useAuth } from "@/context/AuthContext"
+import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { BookOpen, Trophy, Clock, Target, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { data: session, status } = useSession();
+
+  // Redirect to login if not authenticated
+  if (status === "unauthenticated") {
+    redirect("/login")
+  }
+
+  // Show loading state
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  const user = session?.user
 
   const stats = [
     {
@@ -41,7 +58,7 @@ export default function DashboardPage() {
       {/* Welcome Header */}
       <div>
         <h1 className="text-2xl font-bold">
-          Welcome back, ! 👋
+          Welcome back, {user?.name?.split(" ")[0] || "User"}! 👋
         </h1>
         <p className="text-muted-foreground">
           Ready to continue your exam preparation?
