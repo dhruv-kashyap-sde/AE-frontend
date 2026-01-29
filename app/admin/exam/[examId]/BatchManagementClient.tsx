@@ -386,6 +386,7 @@ export default function BatchManagementClient({
           <Input
             id={`${idPrefix}-expiry`}
             type="date"
+            min={new Date().toISOString().split("T")[0]}
             value={formData.expiry}
             onChange={(e) => setFormData({ ...formData, expiry: e.target.value })}
           />
