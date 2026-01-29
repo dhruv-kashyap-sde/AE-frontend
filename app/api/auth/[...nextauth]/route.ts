@@ -9,8 +9,8 @@ import NextAuth, { NextAuthOptions, Session } from "next-auth"
 import { JWT } from "next-auth/jwt"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { findOrCreateUser } from "@/lib/models/user"
-import { verifyAdminCredentials } from "@/lib/models/admin"
+import { findOrCreateUser } from "@/models/user"
+import { verifyAdminCredentials } from "@/models/admin"
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!

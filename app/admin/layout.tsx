@@ -78,7 +78,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-background">
       {/* Top Header with Hamburger */}
-      <header className="sticky top-0 z-40 w-full border-b bg-destructive/5 backdrop-blur supports-backdrop-filter:bg-background/60">
+      <header className="sticky top-0 z-40 w-full border-b bg-primary/5 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center gap-4">
             {/* Hamburger Menu */}
@@ -90,14 +90,14 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0">
-                <SheetHeader className="p-4 border-b bg-destructive/10">
+                <SheetHeader className="p-4 border-b bg-primary/10">
                   <SheetTitle>
                     <Link
-                      href="/admin"
+                      href="/"
                       className="flex items-center gap-2"
                       onClick={() => setSheetOpen(false)}
                     >
-                      <div className="h-10 w-10 rounded-lg bg-destructive flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
                         <Shield className="h-6 w-6 text-primary-foreground" />
                       </div>
                       <span className="font-bold text-xl">Admin Panel</span>
@@ -110,14 +110,14 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                   <div className="p-4 border-b">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-destructive text-primary-foreground">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
                           {getInitials(admin?.name || "Admin")}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col overflow-hidden">
                         <p className="text-sm font-medium truncate">{admin?.name}</p>
                         <p className="text-xs text-muted-foreground truncate">{admin?.email}</p>
-                        <span className="text-xs text-destructive font-medium mt-0.5">Administrator</span>
+                        <span className="text-xs text-primary font-medium mt-0.5">Administrator</span>
                       </div>
                     </div>
                   </div>
@@ -134,7 +134,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                       <button
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
                           isActive(link.href)
-                            ? "bg-destructive text-primary-foreground"
+                            ? "bg-primary text-primary-foreground"
                             : "hover:bg-accent text-foreground"
                         }`}
                       >
@@ -165,8 +165,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
             {/* Page Title */}
             <div className="flex items-center gap-2">
-              <Link href="/admin" className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-destructive flex items-center justify-center">
+              <Link href="/" className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                   <Shield className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-lg hidden sm:inline">Admin Panel</span>
@@ -177,11 +177,11 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             <div className="ml-auto flex items-center gap-2">
               {admin && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-destructive hidden sm:inline">
+                  <span className="text-xs font-medium text-primary hidden sm:inline">
                     {admin?.name}
                   </span>
                   <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-destructive text-primary-foreground text-sm">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                       {getInitials(admin?.name || "Admin")}
                     </AvatarFallback>
                   </Avatar>
