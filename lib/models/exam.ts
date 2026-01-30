@@ -7,6 +7,7 @@
 
 import mongoose, { Schema, Document, Model, Types } from "mongoose"
 import dbConnect from "@/lib/mongoose"
+import { ensureModelsRegistered } from "./registry"
 
 // Exam interface for TypeScript
 export interface IExam {
@@ -105,6 +106,7 @@ function getExamModel(): Model<IExamDocument> {
  */
 export async function getAllExams(): Promise<IExamPopulated[]> {
   await dbConnect()
+  await ensureModelsRegistered()
   const Exam = getExamModel()
   return Exam.find()
     .populate("category", "title imageURL")
@@ -116,6 +118,7 @@ export async function getAllExams(): Promise<IExamPopulated[]> {
  */
 export async function getExamsByCategory(categoryId: string): Promise<IExamPopulated[]> {
   await dbConnect()
+  await ensureModelsRegistered()
   const Exam = getExamModel()
   return Exam.find({ category: categoryId })
     .populate("category", "title imageURL")
@@ -127,6 +130,7 @@ export async function getExamsByCategory(categoryId: string): Promise<IExamPopul
  */
 export async function getExamById(id: string): Promise<IExamPopulated | null> {
   await dbConnect()
+  await ensureModelsRegistered()
   const Exam = getExamModel()
   return Exam.findById(id)
     .populate("category", "title imageURL") as unknown as Promise<IExamPopulated | null>
@@ -137,6 +141,7 @@ export async function getExamById(id: string): Promise<IExamPopulated | null> {
  */
 export async function getExamBySlug(slug: string): Promise<IExamPopulated | null> {
   await dbConnect()
+  await ensureModelsRegistered()
   const Exam = getExamModel()
   return Exam.findOne({ slug })
     .populate("category", "title imageURL") as unknown as Promise<IExamPopulated | null>
