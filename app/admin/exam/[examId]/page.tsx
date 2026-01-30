@@ -11,6 +11,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getExamBySlug } from "@/lib/models/exam";
 import { getBatchesByExam } from "@/lib/models/batch";
 import BatchManagementClient from "./BatchManagementClient";
+import { log } from "console";
 
 export default async function ExamBatchesPage({
   params,
@@ -28,6 +29,8 @@ export default async function ExamBatchesPage({
 
   // Fetch exam by slug
   const exam = await getExamBySlug(examSlug);
+  console.log("exam data from /exam/examID: ", exam);
+  
 
   if (!exam) {
     notFound();
@@ -35,10 +38,12 @@ export default async function ExamBatchesPage({
 
   // Fetch batches for this exam
   const batches = await getBatchesByExam(exam._id.toString());
+  console.log("batches data from /exam/examID: ", batches);
 
   // Serialize data for client component
   const serializedExam = JSON.parse(JSON.stringify(exam));
   const serializedBatches = JSON.parse(JSON.stringify(batches));
+  console.log("serialized exam data and serialized batches from /exam/examID: ", serializedExam, serializedBatches);
 
   return (
     <BatchManagementClient

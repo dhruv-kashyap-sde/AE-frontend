@@ -21,27 +21,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, Loader2 } from "lucide-react";
 import readXlsxFile from "read-excel-file";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SmartText from "./SmartText";
 import { Separator } from "@/components/ui/separator";
 
+type CorrectOption = "A" | "B" | "C" | "D";
+
 type Question = {
-  id: number;
   question: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
-  correct_option: "A" | "B" | "C" | "D";
+  optionA: string;
+  optionB: string;
+  optionC: string;
+  optionD: string;
+  correctOption: CorrectOption;
 };
 
 type UploadExcelProps = {
   onUpload: (questions: Question[]) => void;
+  isLoading?: boolean;
 };
 
-export default function UploadExcel({ onUpload }: UploadExcelProps) {
+export default function UploadExcel({ onUpload, isLoading: externalLoading }: UploadExcelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewQuestions, setPreviewQuestions] = useState<Question[]>([]);
@@ -115,13 +117,12 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
         }
 
         parsedQuestions.push({
-          id: Date.now() + i,
           question: row[0]?.toString().trim() || "",
-          option_a: row[1]?.toString().trim() || "",
-          option_b: row[2]?.toString().trim() || "",
-          option_c: row[3]?.toString().trim() || "",
-          option_d: row[4]?.toString().trim() || "",
-          correct_option: correctOption as "A" | "B" | "C" | "D",
+          optionA: row[1]?.toString().trim() || "",
+          optionB: row[2]?.toString().trim() || "",
+          optionC: row[3]?.toString().trim() || "",
+          optionD: row[4]?.toString().trim() || "",
+          correctOption: correctOption as CorrectOption,
         });
       }
 
@@ -273,7 +274,7 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
                 <div className="max-h-96 overflow-y-auto scrollbar space-y-3 border rounded-lg p-4 bg-muted/20">
                   {previewQuestions.map((q, idx) => (
                     <div
-                      key={q.id}
+                      key={idx}
                       className="border-b pb-3 last:border-0 bg-background rounded p-3"
                     >
                       <p className="font-medium mb-2">
@@ -283,9 +284,9 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-bold">A)</span>{" "}
                           <span className="text-muted-foreground">
-                            <SmartText text={q.option_a} />
+                            <SmartText text={q.optionA} />
                           </span>
-                          {q.correct_option === "A" && (
+                          {q.correctOption === "A" && (
                             <Badge variant="default" className="ml-auto">
                               ✓ Correct
                             </Badge>
@@ -294,9 +295,9 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-bold">B)</span>{" "}
                           <span className="text-muted-foreground">
-                            <SmartText text={q.option_b} />
+                            <SmartText text={q.optionB} />
                           </span>
-                          {q.correct_option === "B" && (
+                          {q.correctOption === "B" && (
                             <Badge variant="default" className="ml-auto">
                               ✓ Correct
                             </Badge>
@@ -305,9 +306,9 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-bold">C)</span>{" "}
                           <span className="text-muted-foreground">
-                            <SmartText text={q.option_c} />
+                            <SmartText text={q.optionC} />
                           </span>
-                          {q.correct_option === "C" && (
+                          {q.correctOption === "C" && (
                             <Badge variant="default" className="ml-auto">
                               ✓ Correct
                             </Badge>
@@ -316,9 +317,9 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground font-bold">D)</span>{" "}
                           <span className="text-muted-foreground">
-                            <SmartText text={q.option_d} />
+                            <SmartText text={q.optionD} />
                           </span>
-                          {q.correct_option === "D" && (
+                          {q.correctOption === "D" && (
                             <Badge variant="default" className="ml-auto">
                               ✓ Correct
                             </Badge>
@@ -340,8 +341,9 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
           </Button>
           <Button
             onClick={handleUpload}
-            disabled={previewQuestions.length === 0 || isLoading}
+            disabled={previewQuestions.length === 0 || isLoading || externalLoading}
           >
+            {externalLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Upload {previewQuestions.length} Questions
           </Button>
         </DialogFooter>
