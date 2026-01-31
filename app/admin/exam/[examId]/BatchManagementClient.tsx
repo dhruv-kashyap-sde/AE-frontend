@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Plus,
@@ -14,6 +14,12 @@ import {
   IndianRupee,
   FolderIcon,
 } from "lucide-react";
+import {
+  createBatch,
+  updateBatch,
+  deleteBatch,
+  refreshBatches,
+} from "./actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -123,6 +129,9 @@ export default function BatchManagementClient({
 }: BatchManagementClientProps) {
   const [batches, setBatches] = useState<Batch[]>(initialBatches);
 
+  // Transition for server actions
+  const [isPending, startTransition] = useTransition();
+
   // Dialog states
   const [createDialog, setCreateDialog] = useState(false);
   const [editDialog, setEditDialog] = useState(false);
@@ -133,13 +142,8 @@ export default function BatchManagementClient({
   const [editingBatch, setEditingBatch] = useState<Batch | null>(null);
   const [deletingBatch, setDeletingBatch] = useState<Batch | null>(null);
 
-  // Loading states
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
   // Create batch
-  const handleCreateBatch = async () => {
+  const handleCreateBatch = () => {
     if (!formData.title.trim()) {
       toast.error("Please enter batch title");
       return;
@@ -153,41 +157,30 @@ export default function BatchManagementClient({
       return;
     }
 
-    setIsCreating(true);
-    try {
-      const response = await fetch(`/api/admin/exams/${exam._id || exam.id}/batches`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: formData.title,
-          price: parseFloat(formData.price),
-          originalPrice: parseFloat(formData.originalPrice),
-          expiry: formData.expiry || null,
-          contentType: formData.contentType,
-          description: formData.description || null,
-        }),
+    startTransition(async () => {
+      const result = await createBatch(exam._id || exam.id, exam.slug, {
+        title: formData.title,
+        price: parseFloat(formData.price),
+        originalPrice: parseFloat(formData.originalPrice),
+        expiry: formData.expiry || null,
+        contentType: formData.contentType,
+        description: formData.description || null,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create batch");
-      }
+      if (result.success) {
+        // Refresh batches list
+        const batchesResult = await refreshBatches(exam._id || exam.id);
+        if (batchesResult.success) {
+          setBatches(batchesResult.data);
+        }
 
-      // Refresh batches list
-      const batchesResponse = await fetch(`/api/admin/exams/${exam._id || exam.id}/batches`);
-      if (batchesResponse.ok) {
-        const data = await batchesResponse.json();
-        setBatches(data.data);
+        toast.success("Batch created successfully");
+        setCreateDialog(false);
+        setFormData(initialFormData);
+      } else {
+        toast.error(result.error);
       }
-
-      toast.success("Batch created successfully");
-      setCreateDialog(false);
-      setFormData(initialFormData);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create batch");
-    } finally {
-      setIsCreating(false);
-    }
+    });
   };
 
   // Open edit dialog
@@ -205,7 +198,7 @@ export default function BatchManagementClient({
   };
 
   // Update batch
-  const handleUpdateBatch = async () => {
+  const handleUpdateBatch = () => {
     if (!editingBatch) return;
     if (!formData.title.trim()) {
       toast.error("Please enter batch title");
@@ -220,45 +213,33 @@ export default function BatchManagementClient({
       return;
     }
 
-    setIsUpdating(true);
-    try {
-      const response = await fetch(
-        `/api/admin/exams/${exam._id || exam.id}/batches/${editingBatch._id || editingBatch.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: formData.title,
-            price: parseFloat(formData.price),
-            originalPrice: parseFloat(formData.originalPrice),
-            expiry: formData.expiry || null,
-            contentType: formData.contentType,
-            description: formData.description || null,
-          }),
+    const batchId = editingBatch._id || editingBatch.id;
+
+    startTransition(async () => {
+      const result = await updateBatch(batchId, exam.slug, {
+        title: formData.title,
+        price: parseFloat(formData.price),
+        originalPrice: parseFloat(formData.originalPrice),
+        expiry: formData.expiry || null,
+        contentType: formData.contentType,
+        description: formData.description || null,
+      });
+
+      if (result.success) {
+        // Refresh batches list
+        const batchesResult = await refreshBatches(exam._id || exam.id);
+        if (batchesResult.success) {
+          setBatches(batchesResult.data);
         }
-      );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update batch");
+        toast.success("Batch updated successfully");
+        setEditDialog(false);
+        setEditingBatch(null);
+        setFormData(initialFormData);
+      } else {
+        toast.error(result.error);
       }
-
-      // Refresh batches list
-      const batchesResponse = await fetch(`/api/admin/exams/${exam._id || exam.id}/batches`);
-      if (batchesResponse.ok) {
-        const data = await batchesResponse.json();
-        setBatches(data.data);
-      }
-
-      toast.success("Batch updated successfully");
-      setEditDialog(false);
-      setEditingBatch(null);
-      setFormData(initialFormData);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update batch");
-    } finally {
-      setIsUpdating(false);
-    }
+    });
   };
 
   // Open delete dialog
@@ -268,30 +249,30 @@ export default function BatchManagementClient({
   };
 
   // Delete batch
-  const handleDeleteBatch = async () => {
+  const handleDeleteBatch = () => {
     if (!deletingBatch) return;
 
-    setIsDeleting(true);
-    try {
-      const response = await fetch(
-        `/api/admin/exams/${exam._id || exam.id}/batches/${deletingBatch._id || deletingBatch.id}`,
-        { method: "DELETE" }
-      );
+    const batchId = deletingBatch._id || deletingBatch.id;
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to delete batch");
+    // Optimistic update - remove from UI immediately
+    setBatches((prev) => prev.filter((b) => b._id !== batchId && b.id !== batchId));
+    setDeleteDialog(false);
+
+    startTransition(async () => {
+      const result = await deleteBatch(batchId, exam._id || exam.id, exam.slug);
+
+      if (result.success) {
+        toast.success("Batch deleted successfully");
+        setDeletingBatch(null);
+      } else {
+        // Revert optimistic update on failure
+        const batchesResult = await refreshBatches(exam._id || exam.id);
+        if (batchesResult.success) {
+          setBatches(batchesResult.data);
+        }
+        toast.error(result.error);
       }
-
-      setBatches(batches.filter((b) => b._id !== deletingBatch._id && b.id !== deletingBatch.id));
-      toast.success("Batch deleted successfully");
-      setDeleteDialog(false);
-      setDeletingBatch(null);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete batch");
-    } finally {
-      setIsDeleting(false);
-    }
+    });
   };
 
   // Format date
@@ -456,8 +437,8 @@ export default function BatchManagementClient({
               </DialogHeader>
               {formFieldsJSX("create-batch")}
               <DialogFooter>
-                <Button onClick={handleCreateBatch} disabled={isCreating}>
-                  {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button onClick={handleCreateBatch} disabled={isPending}>
+                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Batch
                 </Button>
               </DialogFooter>
@@ -609,8 +590,8 @@ export default function BatchManagementClient({
             <Button variant="outline" onClick={() => setEditDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateBatch} disabled={isUpdating}>
-              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button onClick={handleUpdateBatch} disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
           </DialogFooter>
@@ -632,9 +613,9 @@ export default function BatchManagementClient({
             <AlertDialogAction
               onClick={handleDeleteBatch}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isDeleting}
+              disabled={isPending}
             >
-              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

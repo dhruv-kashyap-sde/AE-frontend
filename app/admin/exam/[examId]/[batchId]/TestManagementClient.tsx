@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useTransition } from "react"
 import {
   FileText,
   Plus,
@@ -8,6 +8,12 @@ import {
   PencilIcon,
   Loader2,
 } from "lucide-react"
+import {
+  createTest,
+  updateTest,
+  deleteTest,
+  refreshTests,
+} from "./actions"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -73,8 +79,10 @@ export default function TestManagementClient({
   const [tests, setTests] = useState<Test[]>(initialTests)
   const [testDialog, setTestDialog] = useState(false)
   const [editingTest, setEditingTest] = useState<Test | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // Transition for server actions
+  const [isPending, startTransition] = useTransition()
 
   const [newTest, setNewTest] = useState({
     title: "",
@@ -94,105 +102,80 @@ export default function TestManagementClient({
     })
   }
 
-  const handleCreateTest = async () => {
+  const handleCreateTest = () => {
     if (!newTest.title.trim()) {
       toast.error("Test title is required")
       return
     }
 
-    setIsLoading(true)
-    try {
-      const res = await fetch(`/api/admin/exams/${examId}/batches/${batchId}/tests`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: newTest.title.trim(),
-          marksPerQuestion: newTest.marksPerQuestion,
-          negativeMarking: newTest.negativeMarking,
-          negativeMarkValue: newTest.negativeMarking ? newTest.negativeMarkValue : 0,
-          duration: newTest.duration,
-        }),
+    startTransition(async () => {
+      const result = await createTest(examId, batchId, {
+        title: newTest.title.trim(),
+        marksPerQuestion: newTest.marksPerQuestion,
+        negativeMarking: newTest.negativeMarking,
+        negativeMarkValue: newTest.negativeMarking ? newTest.negativeMarkValue : 0,
+        duration: newTest.duration,
       })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to create test")
+      if (result.success) {
+        setTests([...tests, result.data])
+        resetNewTest()
+        setTestDialog(false)
+        toast.success("Test created successfully")
+      } else {
+        toast.error(result.error)
       }
-
-      setTests([...tests, data.data])
-      resetNewTest()
-      setTestDialog(false)
-      toast.success("Test created successfully")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create test")
-    } finally {
-      setIsLoading(false)
-    }
+    })
   }
 
-  const handleEditTest = async () => {
+  const handleEditTest = () => {
     if (!editingTest || !editingTest.title.trim()) {
       toast.error("Test title is required")
       return
     }
 
-    setIsLoading(true)
-    try {
-      const res = await fetch(
-        `/api/admin/exams/${examId}/batches/${batchId}/tests/${editingTest._id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: editingTest.title.trim(),
-            marksPerQuestion: editingTest.marksPerQuestion,
-            negativeMarking: editingTest.negativeMarking,
-            negativeMarkValue: editingTest.negativeMarking
-              ? editingTest.negativeMarkValue
-              : 0,
-            duration: editingTest.duration,
-          }),
-        }
-      )
+    startTransition(async () => {
+      const result = await updateTest(examId, batchId, editingTest._id, {
+        title: editingTest.title.trim(),
+        marksPerQuestion: editingTest.marksPerQuestion,
+        negativeMarking: editingTest.negativeMarking,
+        negativeMarkValue: editingTest.negativeMarking
+          ? editingTest.negativeMarkValue
+          : 0,
+        duration: editingTest.duration,
+      })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to update test")
+      if (result.success) {
+        setTests(tests.map((test) => (test._id === editingTest._id ? result.data : test)))
+        setEditingTest(null)
+        toast.success("Test updated successfully")
+      } else {
+        toast.error(result.error)
       }
-
-      setTests(tests.map((test) => (test._id === editingTest._id ? data.data : test)))
-      setEditingTest(null)
-      toast.success("Test updated successfully")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update test")
-    } finally {
-      setIsLoading(false)
-    }
+    })
   }
 
-  const handleDeleteTest = async (id: string) => {
+  const handleDeleteTest = (id: string) => {
     setDeletingId(id)
-    try {
-      const res = await fetch(
-        `/api/admin/exams/${examId}/batches/${batchId}/tests/${id}`,
-        { method: "DELETE" }
-      )
 
-      const data = await res.json()
+    // Optimistic update
+    setTests((prev) => prev.filter((test) => test._id !== id))
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to delete test")
+    startTransition(async () => {
+      const result = await deleteTest(examId, batchId, id)
+
+      if (result.success) {
+        toast.success("Test deleted successfully")
+      } else {
+        // Revert on failure
+        const testsResult = await refreshTests(batchId)
+        if (testsResult.success) {
+          setTests(testsResult.data)
+        }
+        toast.error(result.error)
       }
-
-      setTests(tests.filter((test) => test._id !== id))
-      toast.success("Test deleted successfully")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete test")
-    } finally {
       setDeletingId(null)
-    }
+    })
   }
 
   const formatDate = (dateString: string) => {
@@ -320,12 +303,12 @@ export default function TestManagementClient({
                   setTestDialog(false)
                   resetNewTest()
                 }}
-                disabled={isLoading}
+                disabled={isPending}
               >
                 Cancel
               </Button>
-              <Button onClick={handleCreateTest} disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button onClick={handleCreateTest} disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Test
               </Button>
             </DialogFooter>
@@ -353,12 +336,12 @@ export default function TestManagementClient({
             <Button
               variant="outline"
               onClick={() => setEditingTest(null)}
-              disabled={isLoading}
+              disabled={isPending}
             >
               Cancel
             </Button>
-            <Button onClick={handleEditTest} disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button onClick={handleEditTest} disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
           </DialogFooter>

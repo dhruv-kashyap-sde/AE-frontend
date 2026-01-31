@@ -1,6 +1,13 @@
 "use client"
 
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useTransition } from "react"
+import {
+  createQuestion,
+  createManyQuestions,
+  updateQuestion,
+  deleteQuestion,
+  refreshQuestions,
+} from "./actions"
 import {
   Dialog,
   DialogContent,
@@ -102,8 +109,10 @@ export default function QuestionManagementClient({
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const questionsPerPage = 20
-  const [isLoading, setIsLoading] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // Transition for server actions
+  const [isPending, startTransition] = useTransition()
 
   // Image handling
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
@@ -166,7 +175,7 @@ export default function QuestionManagementClient({
     if (editFileInputRef.current) editFileInputRef.current.value = ""
   }
 
-  const handleAddQuestion = async () => {
+  const handleAddQuestion = () => {
     if (!newQuestion.question.trim()) {
       toast.error("Question text is required")
       return
@@ -177,43 +186,29 @@ export default function QuestionManagementClient({
       return
     }
 
-    setIsLoading(true)
-    try {
-      const res = await fetch(
-        `/api/admin/exams/${examId}/batches/${batchId}/tests/${testId}/questions`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            question: newQuestion.question.trim(),
-            optionA: newQuestion.optionA.trim(),
-            optionB: newQuestion.optionB.trim(),
-            optionC: newQuestion.optionC.trim(),
-            optionD: newQuestion.optionD.trim(),
-            correctOption: newQuestion.correctOption,
-            image: imagePreview, // base64 string
-          }),
-        }
-      )
+    startTransition(async () => {
+      const result = await createQuestion(examId, batchId, testId, {
+        question: newQuestion.question.trim(),
+        optionA: newQuestion.optionA.trim(),
+        optionB: newQuestion.optionB.trim(),
+        optionC: newQuestion.optionC.trim(),
+        optionD: newQuestion.optionD.trim(),
+        correctOption: newQuestion.correctOption,
+        image: imagePreview, // base64 string
+      })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to add question")
+      if (result.success) {
+        setQuestions([...questions, result.data])
+        resetNewQuestion()
+        setIsAddDialogOpen(false)
+        toast.success("Question added successfully")
+      } else {
+        toast.error(result.error)
       }
-
-      setQuestions([...questions, data.data])
-      resetNewQuestion()
-      setIsAddDialogOpen(false)
-      toast.success("Question added successfully")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to add question")
-    } finally {
-      setIsLoading(false)
-    }
+    })
   }
 
-  const handleEditQuestion = async () => {
+  const handleEditQuestion = () => {
     if (!editingQuestion) return
 
     if (!editingQuestion.question.trim()) {
@@ -226,9 +221,17 @@ export default function QuestionManagementClient({
       return
     }
 
-    setIsLoading(true)
-    try {
-      const updateData: any = {
+    startTransition(async () => {
+      const updateData: {
+        question: string
+        optionA: string
+        optionB: string
+        optionC: string
+        optionD: string
+        correctOption: CorrectOption
+        image?: string | null
+        removeImage?: boolean
+      } = {
         question: editingQuestion.question.trim(),
         optionA: editingQuestion.optionA.trim(),
         optionB: editingQuestion.optionB.trim(),
@@ -244,58 +247,45 @@ export default function QuestionManagementClient({
         updateData.removeImage = true
       }
 
-      const res = await fetch(
-        `/api/admin/exams/${examId}/batches/${batchId}/tests/${testId}/questions/${editingQuestion._id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updateData),
-        }
-      )
+      const result = await updateQuestion(examId, batchId, testId, editingQuestion._id, updateData)
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to update question")
+      if (result.success) {
+        setQuestions(questions.map((q) => (q._id === editingQuestion._id ? result.data : q)))
+        setEditingQuestion(null)
+        setIsEditDialogOpen(false)
+        setSelectedImageFile(null)
+        setImagePreview(null)
+        toast.success("Question updated successfully")
+      } else {
+        toast.error(result.error)
       }
-
-      setQuestions(questions.map((q) => (q._id === editingQuestion._id ? data.data : q)))
-      setEditingQuestion(null)
-      setIsEditDialogOpen(false)
-      setSelectedImageFile(null)
-      setImagePreview(null)
-      toast.success("Question updated successfully")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update question")
-    } finally {
-      setIsLoading(false)
-    }
+    })
   }
 
-  const handleDeleteQuestion = async (id: string) => {
+  const handleDeleteQuestion = (id: string) => {
     setDeletingId(id)
-    try {
-      const res = await fetch(
-        `/api/admin/exams/${examId}/batches/${batchId}/tests/${testId}/questions/${id}`,
-        { method: "DELETE" }
-      )
 
-      const data = await res.json()
+    // Optimistic update
+    setQuestions((prev) => prev.filter((q) => q._id !== id))
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to delete question")
+    startTransition(async () => {
+      const result = await deleteQuestion(examId, batchId, testId, id)
+
+      if (result.success) {
+        toast.success("Question deleted successfully")
+      } else {
+        // Revert on failure
+        const questionsResult = await refreshQuestions(testId)
+        if (questionsResult.success) {
+          setQuestions(questionsResult.data)
+        }
+        toast.error(result.error)
       }
-
-      setQuestions(questions.filter((q) => q._id !== id))
-      toast.success("Question deleted successfully")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete question")
-    } finally {
       setDeletingId(null)
-    }
+    })
   }
 
-  const handleExcelUpload = async (uploadedQuestions: Array<{
+  const handleExcelUpload = (uploadedQuestions: Array<{
     question: string
     optionA: string
     optionB: string
@@ -308,30 +298,16 @@ export default function QuestionManagementClient({
       return
     }
 
-    setIsLoading(true)
-    try {
-      const res = await fetch(
-        `/api/admin/exams/${examId}/batches/${batchId}/tests/${testId}/questions`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ questions: uploadedQuestions }),
-        }
-      )
+    startTransition(async () => {
+      const result = await createManyQuestions(examId, batchId, testId, uploadedQuestions)
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to upload questions")
+      if (result.success) {
+        setQuestions([...questions, ...result.data.data])
+        toast.success(result.data.message)
+      } else {
+        toast.error(result.error)
       }
-
-      setQuestions([...questions, ...data.data])
-      toast.success(data.message || `${uploadedQuestions.length} questions added successfully`)
-    } catch (error: any) {
-      toast.error(error.message || "Failed to upload questions")
-    } finally {
-      setIsLoading(false)
-    }
+    })
   }
 
   const openEditDialog = (question: Question) => {
@@ -362,7 +338,7 @@ export default function QuestionManagementClient({
 
         <div className="flex gap-2">
           {/* Upload Excel Dialog */}
-          <UploadExcel onUpload={handleExcelUpload} isLoading={isLoading} />
+          <UploadExcel onUpload={handleExcelUpload} isLoading={isPending} />
 
           {/* Add Question Dialog */}
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -480,12 +456,12 @@ export default function QuestionManagementClient({
                     setIsAddDialogOpen(false)
                     resetNewQuestion()
                   }}
-                  disabled={isLoading}
+                  disabled={isPending}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleAddQuestion} disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button onClick={handleAddQuestion} disabled={isPending}>
+                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Add Question
                 </Button>
               </DialogFooter>
@@ -619,12 +595,12 @@ export default function QuestionManagementClient({
                     setSelectedImageFile(null)
                     setImagePreview(null)
                   }}
-                  disabled={isLoading}
+                  disabled={isPending}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleEditQuestion} disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button onClick={handleEditQuestion} disabled={isPending}>
+                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Changes
                 </Button>
               </DialogFooter>

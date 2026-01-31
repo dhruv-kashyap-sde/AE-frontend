@@ -131,14 +131,14 @@ export default async function BatchContentPage({ params }: PageProps) {
 
       {batch.contentType === "test" ? (
         <TestManagementClient
-          examId={examId}
-          batchId={batchId}
+          examId={actualExamId}
+          batchId={actualBatchId}
           initialTests={serializedTests}
         />
       ) : (
         <FileManagementClient
-          examId={examId}
-          batchId={batchId}
+          examId={actualExamId}
+          batchId={actualBatchId}
           initialFiles={serializedFiles}
         />
       )}
