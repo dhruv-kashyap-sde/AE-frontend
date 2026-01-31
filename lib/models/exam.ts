@@ -15,7 +15,7 @@ export interface IExam {
   slug: string
   imageURL: string | null
   category: Types.ObjectId
-  totalTests: number
+  totalBatches: number
   createdAt: Date
   updatedAt: Date
 }
@@ -61,7 +61,7 @@ const ExamSchema = new Schema<IExamDocument>(
       required: [true, "Category is required"],
       index: true,
     },
-    totalTests: {
+    totalBatches: {
       type: Number,
       default: 0,
       min: 0,
@@ -170,7 +170,7 @@ export async function createExam(data: {
     slug,
     imageURL: data.imageURL || null,
     category: data.category,
-    totalTests: 0,
+    totalBatches: 0,
   })
 
   await exam.save()
@@ -182,7 +182,7 @@ export async function createExam(data: {
  */
 export async function updateExam(
   id: string,
-  data: Partial<Pick<IExam, "title" | "slug" | "imageURL" | "category" | "totalTests">>
+  data: Partial<Pick<IExam, "title" | "slug" | "imageURL" | "category" | "totalBatches">>
 ): Promise<IExamDocument | null> {
   await dbConnect()
   const Exam = getExamModel()
@@ -203,40 +203,47 @@ export async function updateExam(
 }
 
 /**
- * Delete an exam
+ * Delete an exam (cascade deletes all batches, tests, questions, and files)
  */
 export async function deleteExam(id: string): Promise<boolean> {
   await dbConnect()
   const Exam = getExamModel()
   
+  // Import here to avoid circular dependency
+  const { deleteBatchesByExam } = await import("./batch")
+  
+  // First cascade delete all batches (which will delete tests, questions, files)
+  await deleteBatchesByExam(id)
+  
+  // Then delete the exam itself
   const result = await Exam.findByIdAndDelete(id)
   return !!result
 }
 
 /**
- * Increment total tests count
+ * Increment total batches count
  */
-export async function incrementExamTests(id: string): Promise<IExamDocument | null> {
+export async function incrementExamBatches(examId: string): Promise<IExamDocument | null> {
   await dbConnect()
   const Exam = getExamModel()
   
   return Exam.findByIdAndUpdate(
-    id,
-    { $inc: { totalTests: 1 } },
+    examId,
+    { $inc: { totalBatches: 1 } },
     { new: true }
   )
 }
 
 /**
- * Decrement total tests count
+ * Decrement total batches count
  */
-export async function decrementExamTests(id: string): Promise<IExamDocument | null> {
+export async function decrementExamBatches(examId: string): Promise<IExamDocument | null> {
   await dbConnect()
   const Exam = getExamModel()
   
   return Exam.findByIdAndUpdate(
-    id,
-    { $inc: { totalTests: -1 } },
+    examId,
+    { $inc: { totalBatches: -1 } },
     { new: true }
   )
 }

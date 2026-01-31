@@ -53,6 +53,7 @@ interface Exam {
   title: string
   slug: string
   imageURL: string | null
+  totalBatches: number
   category: {
     _id: string
     title: string

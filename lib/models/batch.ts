@@ -218,12 +218,60 @@ export async function updateBatch(
 }
 
 /**
- * Delete a batch
+ * Delete a batch (cascade deletes all tests/files and their children)
  */
 export async function deleteBatch(id: string): Promise<IBatchDocument | null> {
   await dbConnect()
   const Batch = getBatchModel()
-  return Batch.findByIdAndDelete(id).lean()
+  
+  // Import here to avoid circular dependency
+  const { deleteTestsByBatch } = await import("./test")
+  const { deleteFilesByBatch } = await import("./batchFile")
+  
+  // First get the batch to know its content type
+  const batch = await Batch.findById(id).lean()
+  
+  if (batch) {
+    // Cascade delete based on content type
+    if (batch.contentType === "test") {
+      await deleteTestsByBatch(id)
+    } else {
+      await deleteFilesByBatch(id)
+    }
+    
+    // Delete the batch itself
+    return Batch.findByIdAndDelete(id).lean()
+  }
+  
+  return null
+}
+
+/**
+ * Delete all batches for an exam (cascade deletes all tests/files and their children)
+ */
+export async function deleteBatchesByExam(examId: string): Promise<number> {
+  await dbConnect()
+  const Batch = getBatchModel()
+  
+  // Import here to avoid circular dependency
+  const { deleteTestsByBatch } = await import("./test")
+  const { deleteFilesByBatch } = await import("./batchFile")
+  
+  // Get all batches for this exam
+  const batches = await Batch.find({ exam: examId }).lean()
+  
+  // Cascade delete for each batch
+  for (const batch of batches) {
+    if (batch.contentType === "test") {
+      await deleteTestsByBatch(batch._id.toString())
+    } else {
+      await deleteFilesByBatch(batch._id.toString())
+    }
+  }
+  
+  // Delete all batches
+  const result = await Batch.deleteMany({ exam: examId })
+  return result.deletedCount
 }
 
 /**

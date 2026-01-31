@@ -1,23 +1,23 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+"use client"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from "@/components/ui/sheet"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@/components/ui/input-group";
-import { useState } from "react";
-import { Pencil, Trash2, Check, X, ChevronLeft, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+} from "@/components/ui/input-group"
+import { useState, useTransition } from "react"
+import { Pencil, Trash2, Check, X, ChevronLeft, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,148 +27,146 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from "@/components/ui/alert-dialog"
+import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  refreshCategories,
+} from "./actions"
 
 interface Category {
-  _id: string;
-  id: string;
-  title: string;
-  imageURL: string | null;
+  _id: string
+  id: string
+  title: string
+  imageURL: string | null
 }
 
 interface CategorySheetProps {
-  categories: Category[];
-  onCategoriesChange: () => void;
+  categories: Category[]
+  onCategoriesChange: () => void
 }
 
-export function CategorySheet({ categories: initialCategories, onCategoriesChange }: CategorySheetProps) {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [deleteDialog, setDeleteDialog] = useState(false);
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+export function CategorySheet({
+  categories: initialCategories,
+  onCategoriesChange,
+}: CategorySheetProps) {
+  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const [newCategoryName, setNewCategoryName] = useState("")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState("")
+  const [deleteDialog, setDeleteDialog] = useState(false)
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(
+    null
+  )
+
+  // Transition for server actions
+  const [isPending, startTransition] = useTransition()
 
   // Sync with parent when initialCategories changes
   useState(() => {
-    setCategories(initialCategories);
-  });
+    setCategories(initialCategories)
+  })
 
-  const handleCreate = async () => {
+  const handleCreate = () => {
     if (!newCategoryName.trim()) {
-      toast.error("Please enter category name");
-      return;
+      toast.error("Please enter category name")
+      return
     }
 
-    setIsCreating(true);
-    try {
-      const response = await fetch("/api/admin/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newCategoryName.trim() }),
-      });
+    startTransition(async () => {
+      const result = await createCategory({ title: newCategoryName.trim() })
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create category");
+      if (result.success) {
+        // Refresh categories
+        const categoriesResult = await refreshCategories()
+        if (categoriesResult.success) {
+          setCategories(categoriesResult.data)
+        }
+        setNewCategoryName("")
+        onCategoriesChange()
+        toast.success("Category created successfully")
+      } else {
+        toast.error(result.error)
       }
-
-      const newCategory = await response.json();
-      setCategories([...categories, newCategory]);
-      setNewCategoryName("");
-      onCategoriesChange();
-      toast.success("Category created successfully");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create category");
-    } finally {
-      setIsCreating(false);
-    }
-  };
+    })
+  }
 
   const openDeleteDialog = (category: Category) => {
-    setDeletingCategory(category);
-    setDeleteDialog(true);
-  };
+    setDeletingCategory(category)
+    setDeleteDialog(true)
+  }
 
-  const handleDelete = async () => {
-    if (!deletingCategory) return;
+  const handleDelete = () => {
+    if (!deletingCategory) return
 
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/api/admin/categories/${deletingCategory._id || deletingCategory.id}`, {
-        method: "DELETE",
-      });
+    const categoryId = deletingCategory._id || deletingCategory.id
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to delete category");
+    // Optimistic update
+    setCategories((prev) =>
+      prev.filter((cat) => cat._id !== categoryId && cat.id !== categoryId)
+    )
+    setDeleteDialog(false)
+
+    startTransition(async () => {
+      const result = await deleteCategory(categoryId)
+
+      if (result.success) {
+        onCategoriesChange()
+        toast.success("Category deleted successfully")
+        setDeletingCategory(null)
+      } else {
+        // Revert optimistic update
+        const categoriesResult = await refreshCategories()
+        if (categoriesResult.success) {
+          setCategories(categoriesResult.data)
+        }
+        toast.error(result.error)
       }
-
-      setCategories(categories.filter((cat) => 
-        cat._id !== deletingCategory._id && cat.id !== deletingCategory.id
-      ));
-      onCategoriesChange();
-      toast.success("Category deleted successfully");
-      setDeleteDialog(false);
-      setDeletingCategory(null);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete category");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+    })
+  }
 
   const handleEdit = (id: string, name: string) => {
-    setEditingId(id);
-    setEditingName(name);
-  };
+    setEditingId(id)
+    setEditingName(name)
+  }
 
-  const handleSaveEdit = async () => {
-    if (!editingName.trim() || !editingId) return;
+  const handleSaveEdit = () => {
+    if (!editingName.trim() || !editingId) return
 
-    setIsUpdating(true);
-    try {
-      const response = await fetch(`/api/admin/categories/${editingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: editingName.trim() }),
-      });
+    startTransition(async () => {
+      const result = await updateCategory(editingId, {
+        title: editingName.trim(),
+      })
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update category");
+      if (result.success) {
+        // Refresh categories
+        const categoriesResult = await refreshCategories()
+        if (categoriesResult.success) {
+          setCategories(categoriesResult.data)
+        }
+        setEditingId(null)
+        setEditingName("")
+        onCategoriesChange()
+        toast.success("Category updated successfully")
+      } else {
+        toast.error(result.error)
       }
-
-      const updatedCategory = await response.json();
-      setCategories(
-        categories.map((cat) =>
-          (cat._id === editingId || cat.id === editingId) ? updatedCategory : cat
-        )
-      );
-      setEditingId(null);
-      setEditingName("");
-      onCategoriesChange();
-      toast.success("Category updated successfully");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update category");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    })
+  }
 
   const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditingName("");
-  };
+    setEditingId(null)
+    setEditingName("")
+  }
 
   return (
     <>
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline">Categories <ChevronLeft /></Button>
+          <Button variant="outline">
+            Categories <ChevronLeft />
+          </Button>
         </SheetTrigger>
         <SheetContent className="gap-1 sm:max-w-lg">
           <SheetHeader className="pb-2">
@@ -183,19 +181,23 @@ export function CategorySheet({ categories: initialCategories, onCategoriesChang
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !isCreating) {
-                    handleCreate();
+                  if (e.key === "Enter" && !isPending) {
+                    handleCreate()
                   }
                 }}
-                disabled={isCreating}
+                disabled={isPending}
               />
               <InputGroupAddon align="inline-end">
-                <InputGroupButton 
-                  variant="ghost" 
+                <InputGroupButton
+                  variant="ghost"
                   onClick={handleCreate}
-                  disabled={isCreating}
+                  disabled={isPending}
                 >
-                  {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create"}
+                  {isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Create"
+                  )}
                 </InputGroupButton>
               </InputGroupAddon>
             </InputGroup>
@@ -221,15 +223,15 @@ export function CategorySheet({ categories: initialCategories, onCategoriesChang
                           value={editingName}
                           onChange={(e) => setEditingName(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter" && !isUpdating) {
-                              handleSaveEdit();
+                            if (e.key === "Enter" && !isPending) {
+                              handleSaveEdit()
                             } else if (e.key === "Escape") {
-                              handleCancelEdit();
+                              handleCancelEdit()
                             }
                           }}
                           className="h-8 mr-2"
                           autoFocus
-                          disabled={isUpdating}
+                          disabled={isPending}
                         />
                         <div className="flex gap-1">
                           <Button
@@ -237,9 +239,9 @@ export function CategorySheet({ categories: initialCategories, onCategoriesChang
                             variant="ghost"
                             className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
                             onClick={handleSaveEdit}
-                            disabled={isUpdating}
+                            disabled={isPending}
                           >
-                            {isUpdating ? (
+                            {isPending ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <Check className="h-4 w-4" />
@@ -250,7 +252,7 @@ export function CategorySheet({ categories: initialCategories, onCategoriesChang
                             variant="ghost"
                             className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={handleCancelEdit}
-                            disabled={isUpdating}
+                            disabled={isPending}
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -258,15 +260,18 @@ export function CategorySheet({ categories: initialCategories, onCategoriesChang
                       </>
                     ) : (
                       <>
-                        <div className="text-sm py-2">
-                          {category.title}
-                        </div>
+                        <div className="text-sm py-2">{category.title}</div>
                         <div className="flex gap-1">
                           <Button
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                            onClick={() => handleEdit(category._id || category.id, category.title)}
+                            onClick={() =>
+                              handleEdit(
+                                category._id || category.id,
+                                category.title
+                              )
+                            }
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -295,8 +300,9 @@ export function CategorySheet({ categories: initialCategories, onCategoriesChang
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Category</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deletingCategory?.title}&quot;? 
-              This action cannot be undone. Categories with existing exams cannot be deleted.
+              Are you sure you want to delete &quot;{deletingCategory?.title}
+              &quot;? This action cannot be undone. Categories with existing
+              exams cannot be deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -304,14 +310,14 @@ export function CategorySheet({ categories: initialCategories, onCategoriesChang
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isDeleting}
+              disabled={isPending}
             >
-              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  );
+  )
 }

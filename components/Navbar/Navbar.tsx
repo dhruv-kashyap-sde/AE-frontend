@@ -278,7 +278,7 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel className="font-normal">
-                    <div className="flex items-center gap-3 py-2">
+                    <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
                         <AvatarFallback className="bg-primary text-primary-foreground">
@@ -298,6 +298,18 @@ export default function Navbar() {
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
+                    {isAdmin && (
+                  <DropdownMenuItem asChild>
+                        <Link
+                          href="/admin/exam"
+                          className="flex items-center gap-2 cursor-pointer"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <ClipboardList className="h-4 w-4" />
+                          Manage exams
+                        </Link>
+                  </DropdownMenuItem>
+                      )}
                   {!isAdmin && (
                     <DropdownMenuItem asChild>
                       <Link href="/dashboard/tests" className="flex items-center gap-2 cursor-pointer">
@@ -454,6 +466,16 @@ export default function Navbar() {
                         <LayoutDashboard className="h-4 w-4" />
                         Dashboard
                       </Link>
+                      {isAdmin && (
+                        <Link
+                          href="/admin/exam"
+                          className="flex items-center gap-3 py-2 px-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <ClipboardList className="h-4 w-4" />
+                          Manage exams
+                        </Link>
+                      )}
                       {!isAdmin && (
                         <Link
                           href="/dashboard/tests"

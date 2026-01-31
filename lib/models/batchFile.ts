@@ -174,6 +174,16 @@ export async function deleteBatchFile(id: string): Promise<IBatchFileDocument | 
 }
 
 /**
+ * Delete all files for a batch (cascade delete)
+ */
+export async function deleteFilesByBatch(batchId: string): Promise<number> {
+  await dbConnect()
+  const BatchFile = getBatchFileModel()
+  const result = await BatchFile.deleteMany({ batch: batchId })
+  return result.deletedCount
+}
+
+/**
  * Get file count for a batch
  */
 export async function getFileCountByBatch(batchId: string): Promise<number> {

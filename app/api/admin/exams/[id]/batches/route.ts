@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { getBatchesByExam, createBatch } from "@/lib/models/batch"
-import { getExamById } from "@/lib/models/exam"
+import { getExamById, incrementExamBatches } from "@/lib/models/exam"
 
 // GET all batches for an exam
 export async function GET(
@@ -118,6 +118,9 @@ export async function POST(
       contentType,
       description: description?.trim() || null,
     })
+
+    // Increment the totalBatches count on the exam
+    await incrementExamBatches(examId)
 
     return NextResponse.json({
       success: true,

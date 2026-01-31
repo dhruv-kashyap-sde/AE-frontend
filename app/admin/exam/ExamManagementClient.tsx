@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useTransition } from "react"
 import {
   Plus,
   FolderPlus,
@@ -8,8 +8,8 @@ import {
   PencilIcon,
   Eye,
   Loader2,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -18,10 +18,10 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
 import {
   Empty,
   EmptyContent,
@@ -29,7 +29,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty";
+} from "@/components/ui/empty"
 import {
   Select,
   SelectContent,
@@ -38,8 +38,8 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Avatar } from "@/components/ui/avatar";
+} from "@/components/ui/select"
+import { Avatar } from "@/components/ui/avatar"
 import {
   Table,
   TableBody,
@@ -47,14 +47,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "@/components/ui/breadcrumb"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,214 +64,197 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import Link from "next/link";
-import { toast } from "sonner";
-import { CategorySheet } from "./CategorySheet";
+} from "@/components/ui/alert-dialog"
+import Link from "next/link"
+import { toast } from "sonner"
+import { CategorySheet } from "./CategorySheet"
+import {
+  createExam,
+  updateExam,
+  deleteExam,
+  refreshExams,
+  refreshCategories,
+} from "./actions"
 
 // Types
 interface Category {
-  _id: string;
-  id: string;
-  title: string;
-  imageURL: string | null;
+  _id: string
+  id: string
+  title: string
+  imageURL: string | null
 }
 
 interface Exam {
-  _id: string;
-  id: string;
-  title: string;
-  slug: string;
-  imageURL: string | null;
-  category: Category;
-  totalTests: number;
-  createdAt: string;
+  _id: string
+  id: string
+  title: string
+  slug: string
+  imageURL: string | null
+  category: Category
+  totalBatches: number
+  createdAt: string
 }
 
 interface ExamFormData {
-  title: string;
-  categoryId: string;
-  imageURL: string;
+  title: string
+  categoryId: string
+  imageURL: string
 }
 
 interface ExamManagementClientProps {
-  initialExams: Exam[];
-  initialCategories: Category[];
+  initialExams: Exam[]
+  initialCategories: Category[]
 }
 
 export default function ExamManagementClient({
   initialExams,
   initialCategories,
 }: ExamManagementClientProps) {
-  const [exams, setExams] = useState<Exam[]>(initialExams);
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
-  
+  const [exams, setExams] = useState<Exam[]>(initialExams)
+  const [categories, setCategories] = useState<Category[]>(initialCategories)
+
+  // Transition for server actions
+  const [isPending, startTransition] = useTransition()
+
   // Dialog states
-  const [createDialog, setCreateDialog] = useState(false);
-  const [editDialog, setEditDialog] = useState(false);
-  const [deleteDialog, setDeleteDialog] = useState(false);
-  
+  const [createDialog, setCreateDialog] = useState(false)
+  const [editDialog, setEditDialog] = useState(false)
+  const [deleteDialog, setDeleteDialog] = useState(false)
+
   // Form state
   const [formData, setFormData] = useState<ExamFormData>({
     title: "",
     categoryId: "",
     imageURL: "",
-  });
-  const [editingExam, setEditingExam] = useState<Exam | null>(null);
-  const [deletingExam, setDeletingExam] = useState<Exam | null>(null);
-  
-  // Loading states
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  })
+  const [editingExam, setEditingExam] = useState<Exam | null>(null)
+  const [deletingExam, setDeletingExam] = useState<Exam | null>(null)
 
   // Refresh categories when CategorySheet updates them
-  const refreshCategories = useCallback(async () => {
-    try {
-      const response = await fetch("/api/admin/categories");
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
+  const handleCategoriesChange = () => {
+    startTransition(async () => {
+      const result = await refreshCategories()
+      if (result.success) {
+        setCategories(result.data)
       }
-    } catch (error) {
-      console.error("Error refreshing categories:", error);
-    }
-  }, []);
+    })
+  }
 
   // Create exam
-  const handleCreateExam = async () => {
+  const handleCreateExam = () => {
     if (!formData.title.trim()) {
-      toast.error("Please enter exam title");
-      return;
+      toast.error("Please enter exam title")
+      return
     }
     if (!formData.categoryId) {
-      toast.error("Please select a category");
-      return;
+      toast.error("Please select a category")
+      return
     }
 
-    setIsCreating(true);
-    try {
-      const response = await fetch("/api/admin/exams", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: formData.title,
-          category: formData.categoryId,
-          imageURL: formData.imageURL || null,
-        }),
-      });
+    startTransition(async () => {
+      const result = await createExam({
+        title: formData.title,
+        category: formData.categoryId,
+        imageURL: formData.imageURL || null,
+      })
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create exam");
+      if (result.success) {
+        // Refresh exams list
+        const examsResult = await refreshExams()
+        if (examsResult.success) {
+          setExams(examsResult.data)
+        }
+
+        toast.success("Exam created successfully")
+        setCreateDialog(false)
+        setFormData({ title: "", categoryId: "", imageURL: "" })
+      } else {
+        toast.error(result.error)
       }
-
-      // Refresh exams list
-      const examsResponse = await fetch("/api/admin/exams");
-      if (examsResponse.ok) {
-        const examsData = await examsResponse.json();
-        setExams(examsData);
-      }
-
-      toast.success("Exam created successfully");
-      setCreateDialog(false);
-      setFormData({ title: "", categoryId: "", imageURL: "" });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create exam");
-    } finally {
-      setIsCreating(false);
-    }
-  };
+    })
+  }
 
   // Open edit dialog
   const openEditDialog = (exam: Exam) => {
-    setEditingExam(exam);
+    setEditingExam(exam)
     setFormData({
       title: exam.title,
       categoryId: exam.category._id || exam.category.id,
       imageURL: exam.imageURL || "",
-    });
-    setEditDialog(true);
-  };
+    })
+    setEditDialog(true)
+  }
 
   // Update exam
-  const handleUpdateExam = async () => {
-    if (!editingExam) return;
+  const handleUpdateExam = () => {
+    if (!editingExam) return
     if (!formData.title.trim()) {
-      toast.error("Please enter exam title");
-      return;
+      toast.error("Please enter exam title")
+      return
     }
     if (!formData.categoryId) {
-      toast.error("Please select a category");
-      return;
+      toast.error("Please select a category")
+      return
     }
 
-    setIsUpdating(true);
-    try {
-      const response = await fetch(`/api/admin/exams/${editingExam._id || editingExam.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: formData.title,
-          category: formData.categoryId,
-          imageURL: formData.imageURL || null,
-        }),
-      });
+    const examId = editingExam._id || editingExam.id
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update exam");
+    startTransition(async () => {
+      const result = await updateExam(examId, {
+        title: formData.title,
+        category: formData.categoryId,
+        imageURL: formData.imageURL || null,
+      })
+
+      if (result.success) {
+        // Refresh exams list
+        const examsResult = await refreshExams()
+        if (examsResult.success) {
+          setExams(examsResult.data)
+        }
+
+        toast.success("Exam updated successfully")
+        setEditDialog(false)
+        setEditingExam(null)
+        setFormData({ title: "", categoryId: "", imageURL: "" })
+      } else {
+        toast.error(result.error)
       }
-
-      // Refresh exams list
-      const examsResponse = await fetch("/api/admin/exams");
-      if (examsResponse.ok) {
-        const examsData = await examsResponse.json();
-        setExams(examsData);
-      }
-
-      toast.success("Exam updated successfully");
-      setEditDialog(false);
-      setEditingExam(null);
-      setFormData({ title: "", categoryId: "", imageURL: "" });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update exam");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    })
+  }
 
   // Open delete dialog
   const openDeleteDialog = (exam: Exam) => {
-    setDeletingExam(exam);
-    setDeleteDialog(true);
-  };
+    setDeletingExam(exam)
+    setDeleteDialog(true)
+  }
 
   // Delete exam
-  const handleDeleteExam = async () => {
-    if (!deletingExam) return;
+  const handleDeleteExam = () => {
+    if (!deletingExam) return
 
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/api/admin/exams/${deletingExam._id || deletingExam.id}`, {
-        method: "DELETE",
-      });
+    const examId = deletingExam._id || deletingExam.id
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to delete exam");
+    // Optimistic update - remove from UI immediately
+    setExams((prev) => prev.filter((e) => e._id !== examId && e.id !== examId))
+    setDeleteDialog(false)
+
+    startTransition(async () => {
+      const result = await deleteExam(examId)
+
+      if (result.success) {
+        toast.success("Exam deleted successfully")
+        setDeletingExam(null)
+      } else {
+        // Revert optimistic update on failure
+        const examsResult = await refreshExams()
+        if (examsResult.success) {
+          setExams(examsResult.data)
+        }
+        toast.error(result.error)
       }
-
-      setExams(exams.filter((e) => e._id !== deletingExam._id && e.id !== deletingExam.id));
-      toast.success("Exam deleted successfully");
-      setDeleteDialog(false);
-      setDeletingExam(null);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete exam");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+    })
+  }
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -279,8 +262,8 @@ export default function ExamManagementClient({
       day: "2-digit",
       month: "2-digit",
       year: "2-digit",
-    });
-  };
+    })
+  }
 
   return (
     <div className="space-y-6 overflow-y-auto">
@@ -349,7 +332,10 @@ export default function ExamManagementClient({
                         <SelectGroup>
                           <SelectLabel>Select Category</SelectLabel>
                           {categories.map((cat) => (
-                            <SelectItem key={cat._id || cat.id} value={cat._id || cat.id}>
+                            <SelectItem
+                              key={cat._id || cat.id}
+                              value={cat._id || cat.id}
+                            >
                               {cat.title}
                             </SelectItem>
                           ))}
@@ -373,8 +359,10 @@ export default function ExamManagementClient({
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleCreateExam} disabled={isCreating}>
-                  {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button onClick={handleCreateExam} disabled={isPending}>
+                  {isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Create Exam
                 </Button>
               </DialogFooter>
@@ -382,9 +370,9 @@ export default function ExamManagementClient({
           </Dialog>
 
           {/* Category Sheet */}
-          <CategorySheet 
-            categories={categories} 
-            onCategoriesChange={refreshCategories} 
+          <CategorySheet
+            categories={categories}
+            onCategoriesChange={handleCategoriesChange}
           />
         </div>
       </div>
@@ -399,7 +387,7 @@ export default function ExamManagementClient({
               <TableHead className="w-25 text-center">Logo</TableHead>
               <TableHead className="text-center">Title</TableHead>
               <TableHead className="text-center">Category</TableHead>
-              <TableHead className="text-center">Total Tests</TableHead>
+              <TableHead className="text-center">Total Batches</TableHead>
               <TableHead className="text-center">Created At</TableHead>
               <TableHead className="text-end">Actions</TableHead>
             </TableRow>
@@ -411,7 +399,10 @@ export default function ExamManagementClient({
                   <TableCell className="font-medium">
                     <Avatar className="h-10 w-10 mx-auto">
                       <img
-                        src={exam.imageURL || "https://www.mockers.in/storage/exams/August2023/tNSML6LJjntagAE2hO3W.png"}
+                        src={
+                          exam.imageURL ||
+                          "https://www.mockers.in/storage/exams/August2023/tNSML6LJjntagAE2hO3W.png"
+                        }
                         alt={exam.title}
                       />
                     </Avatar>
@@ -420,7 +411,7 @@ export default function ExamManagementClient({
                   <TableCell className="text-muted-foreground">
                     {exam.category?.title || "N/A"}
                   </TableCell>
-                  <TableCell>{exam.totalTests}</TableCell>
+                  <TableCell>{exam.totalBatches}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDate(exam.createdAt)}
                   </TableCell>
@@ -459,10 +450,9 @@ export default function ExamManagementClient({
                       </EmptyMedia>
                       <EmptyTitle>No Exams</EmptyTitle>
                       <EmptyDescription>
-                        {categories.length === 0 
+                        {categories.length === 0
                           ? "Create a category first, then add exams"
-                          : "Create your first exam"
-                        }
+                          : "Create your first exam"}
                       </EmptyDescription>
                     </EmptyHeader>
                     <EmptyContent>
@@ -487,9 +477,7 @@ export default function ExamManagementClient({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Exam</DialogTitle>
-            <DialogDescription>
-              Update exam details
-            </DialogDescription>
+            <DialogDescription>Update exam details</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -523,7 +511,10 @@ export default function ExamManagementClient({
                     <SelectGroup>
                       <SelectLabel>Select Category</SelectLabel>
                       {categories.map((cat) => (
-                        <SelectItem key={cat._id || cat.id} value={cat._id || cat.id}>
+                        <SelectItem
+                          key={cat._id || cat.id}
+                          value={cat._id || cat.id}
+                        >
                           {cat.title}
                         </SelectItem>
                       ))}
@@ -550,8 +541,8 @@ export default function ExamManagementClient({
             <Button variant="outline" onClick={() => setEditDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateExam} disabled={isUpdating}>
-              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button onClick={handleUpdateExam} disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
           </DialogFooter>
@@ -564,8 +555,12 @@ export default function ExamManagementClient({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Exam</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deletingExam?.title}&quot;? 
+              Are you sure you want to delete &quot;{deletingExam?.title}&quot;?
               This action cannot be undone.
+              <p className="text-destructive mt-2">
+                This will also delete all associated batches, tests, questions,
+                and files.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -573,14 +568,14 @@ export default function ExamManagementClient({
             <AlertDialogAction
               onClick={handleDeleteExam}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isDeleting}
+              disabled={isPending}
             >
-              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }

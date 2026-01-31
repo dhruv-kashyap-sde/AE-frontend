@@ -29,6 +29,7 @@ export default async function HomePage() {
     title: exam.title,
     slug: exam.slug,
     imageURL: exam.imageURL,
+    totalBatches: exam.totalBatches,
     category: {
       _id: exam.category._id.toString(),
       title: exam.category.title,

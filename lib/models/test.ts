@@ -203,12 +203,47 @@ export async function updateTest(
 }
 
 /**
- * Delete a test
+ * Delete a test (cascade deletes all questions)
  */
 export async function deleteTest(id: string): Promise<ITestDocument | null> {
   await dbConnect()
   const Test = getTestModel()
-  return Test.findByIdAndDelete(id).lean()
+  
+  // Import here to avoid circular dependency
+  const { deleteQuestionsByTest } = await import("./question")
+  
+  // First delete the test
+  const test = await Test.findByIdAndDelete(id).lean()
+  
+  if (test) {
+    // Cascade delete all questions for this test
+    await deleteQuestionsByTest(id)
+  }
+  
+  return test
+}
+
+/**
+ * Delete all tests for a batch (cascade deletes all questions)
+ */
+export async function deleteTestsByBatch(batchId: string): Promise<number> {
+  await dbConnect()
+  const Test = getTestModel()
+  
+  // Import here to avoid circular dependency
+  const { deleteQuestionsByTest } = await import("./question")
+  
+  // Get all test IDs for this batch
+  const tests = await Test.find({ batch: batchId }).select("_id").lean()
+  
+  // Delete questions for each test
+  for (const test of tests) {
+    await deleteQuestionsByTest(test._id.toString())
+  }
+  
+  // Delete all tests
+  const result = await Test.deleteMany({ batch: batchId })
+  return result.deletedCount
 }
 
 /**

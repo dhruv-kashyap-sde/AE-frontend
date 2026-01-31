@@ -62,6 +62,7 @@ interface Exam {
   title: string
   slug: string
   imageURL: string | null
+  totalBatches: number
   category: {
     _id: string
     title: string
@@ -97,6 +98,11 @@ export default function ExamCategoryBrowser({
     return categoryIconMap[title] || FolderOpen
   }
 
+  // Get exam count for a category
+  const getExamCount = (categoryTitle: string): number => {
+    return exams.filter((exam) => exam.category.title === categoryTitle).length
+  }
+
   return (
     <section className="py-20">
       <div className="container mx-auto px-4">
@@ -120,6 +126,7 @@ export default function ExamCategoryBrowser({
                 <nav className="space-y-1">
                   {categories.map((category) => {
                     const Icon = getCategoryIcon(category.title)
+                    const count = getExamCount(category.title)
                     return (
                       <button
                         key={category._id}
@@ -131,7 +138,10 @@ export default function ExamCategoryBrowser({
                         }`}
                       >
                         <Icon className="h-5 w-5 shrink-0" />
-                        <span className="font-medium">{category.title}</span>
+                        <span className="font-medium">
+                          {category.title}
+                          <span className="ml-1 opacity-70">({count})</span>
+                        </span>
                         <ChevronRight
                           className={`h-4 w-4 ml-auto ${
                             selectedCategory === category.title
@@ -176,6 +186,7 @@ export default function ExamCategoryBrowser({
                   <nav className="space-y-1 p-2">
                     {categories.map((category) => {
                       const Icon = getCategoryIcon(category.title)
+                      const count = getExamCount(category.title)
                       return (
                         <button
                           key={category._id}
@@ -190,7 +201,10 @@ export default function ExamCategoryBrowser({
                           }`}
                         >
                           <Icon className="h-5 w-5 shrink-0" />
-                          <span className="font-medium">{category.title}</span>
+                          <span className="font-medium">
+                            {category.title}
+                            <span className="ml-1 opacity-70">({count})</span>
+                          </span>
                         </button>
                       )
                     })}
@@ -224,25 +238,32 @@ export default function ExamCategoryBrowser({
             {/* Exam Cards Grid */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredExams.length > 0 ? (
-                filteredExams.map((exam) => (
-                  <Link key={exam._id} href={`/exam/${exam.slug}`}>
+                filteredExams.map((exam) => {
+                  return (
+                    <Link href={`exam/${exam.slug}`} key={exam._id}>
                     <Card className="group cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary h-full">
                       <CardHeader className="pb-3">
                         <div className="flex items-center gap-3">
                           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                             <BookOpen className="h-6 w-6 text-primary" />
                           </div>
-                          <CardTitle className="text-lg">{exam.title}</CardTitle>
+                          <div>
+                            <CardTitle className="text-lg">{exam.title}</CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              {exam.totalBatches} {exam.totalBatches === 1 ? "batch" : "batches"} available
+                            </p>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
                         <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
-                          View Tests →
+                          View Batches →
                         </span>
                       </CardContent>
                     </Card>
-                  </Link>
-                ))
+                    </Link>
+                  )
+                })
               ) : (
                 <div className="col-span-full text-center py-12">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

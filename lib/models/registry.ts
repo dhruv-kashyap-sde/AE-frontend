@@ -10,15 +10,16 @@
 
 import mongoose from "mongoose"
 
-// Flag to track if models have been registered
-let modelsRegistered = false
-
 /**
  * Register all models in the correct dependency order.
  * This ensures that when populate() is called, the referenced model exists.
+ * 
+ * Note: We check mongoose.models directly instead of a flag because
+ * hot reload in development can clear models while keeping the flag.
  */
 export async function ensureModelsRegistered(): Promise<void> {
-  if (modelsRegistered) return
+  // Check if Category model exists (base model) - if not, we need to register all
+  if (mongoose.models.Category) return
   
   // Import models in dependency order (base models first, then dependent ones)
   // This triggers the schema registration for each model
@@ -38,8 +39,6 @@ export async function ensureModelsRegistered(): Promise<void> {
   
   // Level 5: Depends on Test
   await import("./question")
-  
-  modelsRegistered = true
 }
 
 /**

@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { getBatchById, updateBatch, deleteBatch } from "@/lib/models/batch"
+import { decrementExamBatches } from "@/lib/models/exam"
 
 // GET a batch by ID
 export async function GET(
@@ -151,7 +152,7 @@ export async function DELETE(
       )
     }
 
-    const { batchId } = await params
+    const { id: examId, batchId } = await params
     
     // TODO: Check if batch has any content (tests/files) before deleting
     // For now, we allow deletion
@@ -164,6 +165,9 @@ export async function DELETE(
         { status: 404 }
       )
     }
+
+    // Decrement the totalBatches count on the exam
+    await decrementExamBatches(examId)
 
     return NextResponse.json({
       success: true,
