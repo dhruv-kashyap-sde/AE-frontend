@@ -265,41 +265,55 @@ export default function Navbar() {
           {/* CTA Buttons - Desktop */}
           <div className="hidden md:flex items-center gap-4">
             {isLoggedIn ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
-                    <Avatar className="h-10 w-10 cursor-pointer border-2 border-transparent hover:border-primary transition-colors">
-                      <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {getInitials(user?.name || "User")}
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                      <Avatar className="h-10 w-10 cursor-pointer border-2 border-transparent hover:border-primary transition-colors">
+                        <AvatarImage
+                          src={user?.image || ""}
+                          alt={user?.name || "User"}
+                        />
                         <AvatarFallback className="bg-primary text-primary-foreground">
                           {getInitials(user?.name || "User")}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user?.name}</p>
-                        <p className="text-xs text-muted-foreground leading-none">{user?.email}</p>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage
+                            src={user?.image || ""}
+                            alt={user?.name || "User"}
+                          />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {getInitials(user?.name || "User")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">
+                            {user?.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground leading-none">
+                            {user?.email}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href={dashboardUrl} className="flex items-center gap-2 cursor-pointer">
-                      <LayoutDashboard className="h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={dashboardUrl}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
                     {isAdmin && (
-                  <DropdownMenuItem asChild>
+                      <DropdownMenuItem asChild>
                         <Link
                           href="/admin/exam"
                           className="flex items-center gap-2 cursor-pointer"
@@ -308,29 +322,36 @@ export default function Navbar() {
                           <ClipboardList className="h-4 w-4" />
                           Manage exams
                         </Link>
-                  </DropdownMenuItem>
-                      )}
-                  {!isAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/tests" className="flex items-center gap-2 cursor-pointer">
-                        <ClipboardList className="h-4 w-4" />
-                        My Tests
-                      </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {!isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/dashboard/tests"
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <ClipboardList className="h-4 w-4" />
+                          My Tests
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Log out
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <ModeToggle />
+              </>
             ) : (
               <>
-                <Button onClick={() => openAuthDialog("login")}>Login / Signup</Button>
+                <Button onClick={() => openAuthDialog("login")}>
+                  Login / Signup
+                </Button>
                 <ModeToggle />
               </>
             )}
@@ -443,20 +464,27 @@ export default function Navbar() {
                       {/* User Info */}
                       <div className="flex items-center gap-3 py-3 px-2 rounded-lg bg-accent/50">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
+                          <AvatarImage
+                            src={user?.image || ""}
+                            alt={user?.name || "User"}
+                          />
                           <AvatarFallback className="bg-primary text-primary-foreground">
                             {getInitials(user?.name || "User")}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
                           <p className="text-sm font-medium">{user?.name}</p>
-                          <p className="text-xs text-muted-foreground">{user?.email}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {user?.email}
+                          </p>
                           {isAdmin && (
-                            <span className="text-xs text-destructive font-medium">Administrator</span>
+                            <span className="text-xs text-destructive font-medium">
+                              Administrator
+                            </span>
                           )}
                         </div>
                       </div>
-                      
+
                       {/* Navigation Links */}
                       <Link
                         href={dashboardUrl}
@@ -486,7 +514,7 @@ export default function Navbar() {
                           My Tests
                         </Link>
                       )}
-                      
+
                       {/* Logout Button */}
                       <Button
                         variant="outline"
@@ -502,10 +530,17 @@ export default function Navbar() {
                     </>
                   ) : (
                     <>
-                      <Button variant="outline" className="w-full" onClick={() => openAuthDialog("login")}>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => openAuthDialog("login")}
+                      >
                         Login
                       </Button>
-                      <Button className="w-full" onClick={() => openAuthDialog("signup")}>
+                      <Button
+                        className="w-full"
+                        onClick={() => openAuthDialog("signup")}
+                      >
                         Get Started
                       </Button>
                     </>

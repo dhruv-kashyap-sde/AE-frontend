@@ -108,7 +108,7 @@ export default function HomePageClient({ categories, exams }: HomePageClientProp
       {/* Hero Section */}
       <section className="relative py-5 lg:py-28 overflow-hidden">
 
-        <div className="absolute inset-0 bg-linear-to-r from-blue-100 dark:from-card to-background " />
+        <div className="absolute inset-0 bg-linear-to-r from-blue-100 to-background " />
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col lg:flex-row-reverse justify-between">
             <Image
