@@ -91,6 +91,13 @@ export async function PUT(
       )
     }
 
+    if (expiry !== undefined && expiry !== null && expiry < 0) {
+      return NextResponse.json(
+        { success: false, error: "Expiry months cannot be negative" },
+        { status: 400 }
+      )
+    }
+
     if (contentType !== undefined && !["test", "file"].includes(contentType)) {
       return NextResponse.json(
         { success: false, error: "Content type must be 'test' or 'file'" },
@@ -102,7 +109,7 @@ export async function PUT(
     if (title !== undefined) updateData.title = title.trim()
     if (price !== undefined) updateData.price = price
     if (originalPrice !== undefined) updateData.originalPrice = originalPrice
-    if (expiry !== undefined) updateData.expiry = expiry ? new Date(expiry) : null
+    if (expiry !== undefined) updateData.expiry = expiry ?? null
     if (contentType !== undefined) updateData.contentType = contentType
     if (description !== undefined) updateData.description = description?.trim() || null
 

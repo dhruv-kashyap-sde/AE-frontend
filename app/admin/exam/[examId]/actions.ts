@@ -36,9 +36,10 @@ export async function createBatch(
     title: string
     price: number
     originalPrice: number
-    expiry?: string | null
+    expiry?: number | null
     contentType: BatchContentType
     description?: string | null
+    isFeatured?: boolean
   }
 ): Promise<ActionResponse<{ id: string }>> {
   try {
@@ -65,9 +66,10 @@ export async function createBatch(
       exam: examId,
       price: data.price,
       originalPrice: data.originalPrice,
-      expiry: data.expiry ? new Date(data.expiry) : null,
+      expiry: data.expiry ?? null,
       contentType: data.contentType,
       description: data.description || null,
+      isFeatured: data.isFeatured || false,
     })
 
     // Increment exam's batch count
@@ -100,9 +102,10 @@ export async function updateBatch(
     title?: string
     price?: number
     originalPrice?: number
-    expiry?: string | null
+    expiry?: number | null
     contentType?: BatchContentType
     description?: string | null
+    isFeatured?: boolean
   }
 ): Promise<ActionResponse> {
   try {
@@ -137,7 +140,7 @@ export async function updateBatch(
     }
     
     if (data.expiry !== undefined) {
-      updateData.expiry = data.expiry ? new Date(data.expiry) : null
+      updateData.expiry = data.expiry ?? null
     }
     
     if (data.contentType) {
@@ -146,6 +149,10 @@ export async function updateBatch(
     
     if (data.description !== undefined) {
       updateData.description = data.description || null
+    }
+
+    if (data.isFeatured !== undefined) {
+      updateData.isFeatured = data.isFeatured
     }
 
     const batch = await updateBatchModel(batchId, updateData)

@@ -7,13 +7,15 @@
 
 import { getAllCategories } from "@/lib/models/category"
 import { getAllExams } from "@/lib/models/exam"
+import { getFeaturedBatches } from "@/lib/models/batch"
 import HomePageClient from "./HomePageClient"
 
 export default async function HomePage() {
-  // Fetch all categories and exams
-  const [categoriesRaw, examsRaw] = await Promise.all([
+  // Fetch all categories, exams, and featured batches
+  const [categoriesRaw, examsRaw, featuredBatchesRaw] = await Promise.all([
     getAllCategories(),
     getAllExams(),
+    getFeaturedBatches(),
   ])
 
   // Serialize categories for client component
@@ -36,5 +38,26 @@ export default async function HomePage() {
     },
   }))
 
-  return <HomePageClient categories={categories} exams={exams} />
+  // Serialize featured batches for client component
+  const featuredBatches = featuredBatchesRaw.map((batch) => ({
+    _id: batch._id.toString(),
+    id: batch._id.toString(),
+    title: batch.title,
+    slug: batch.slug,
+    price: batch.price,
+    originalPrice: batch.originalPrice,
+    expiry: batch.expiry ?? null,
+    contentType: batch.contentType,
+    totalCount: batch.totalCount,
+    description: batch.description,
+    exam: {
+      _id: batch.exam._id.toString(),
+      id: batch.exam._id.toString(),
+      title: batch.exam.title,
+      slug: batch.exam.slug,
+      imageURL: batch.exam.imageURL,
+    },
+  }))
+
+  return <HomePageClient categories={categories} exams={exams} featuredBatches={featuredBatches} />
 }

@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { getExamBySlug } from "@/lib/models/exam"
 import { getBatchesByExam } from "@/lib/models/batch"
+import { formatDurationFromMonths } from "@/lib/utils"
 import {
   BookOpen,
   FileText,
@@ -60,11 +61,7 @@ export default async function ExamPage({ params }: PageProps) {
     slug: batch.slug,
     price: batch.price,
     originalPrice: batch.originalPrice,
-    expiry: batch.expiry ? new Date(batch.expiry).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }) : null,
+    expiry: batch.expiry ?? null,
     contentType: batch.contentType,
     totalCount: batch.totalCount,
     description: batch.description,
@@ -181,10 +178,10 @@ export default async function ExamPage({ params }: PageProps) {
                           {batch.totalCount} {isTest ? "Tests" : "Files"}
                         </span>
                       </div>
-                      {batch.expiry && (
+                      {batch.expiry !== null && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          <span>Valid till {batch.expiry}</span>
+                          <span>Validity {formatDurationFromMonths(batch.expiry)}</span>
                         </div>
                       )}
                     </div>

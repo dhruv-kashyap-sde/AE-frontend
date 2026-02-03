@@ -24,6 +24,7 @@ import { getExamBySlug } from "@/lib/models/exam"
 import { getBatchBySlug } from "@/lib/models/batch"
 import { getTestsByBatch } from "@/lib/models/test"
 import { getFilesByBatch } from "@/lib/models/batchFile"
+import { formatDurationFromMonths } from "@/lib/utils"
 import {
   BookOpen,
   FileText,
@@ -206,15 +207,10 @@ export default async function BatchPage({ params }: PageProps) {
                         </>
                       )}
                     </div>
-                    {batch.expiry && (
+                    {batch.expiry !== null && (
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                         <Calendar className="h-3 w-3" />
-                        Valid till{" "}
-                        {new Date(batch.expiry).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                        Validity {formatDurationFromMonths(batch.expiry)}
                       </p>
                     )}
                   </div>

@@ -18,10 +18,11 @@ export interface IBatch {
   exam: Types.ObjectId
   price: number
   originalPrice: number
-  expiry: Date | null
+  expiry: number | null
   contentType: BatchContentType
   totalCount: number
   description: string | null
+  isFeatured: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -74,8 +75,9 @@ const BatchSchema = new Schema<IBatchDocument>(
       min: [0, "Original price cannot be negative"],
     },
     expiry: {
-      type: Date,
+      type: Number,
       default: null,
+      min: 0,
     },
     contentType: {
       type: String,
@@ -92,6 +94,11 @@ const BatchSchema = new Schema<IBatchDocument>(
       type: String,
       default: null,
       maxlength: [1000, "Description cannot exceed 1000 characters"],
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
   },
   {
@@ -167,9 +174,10 @@ export async function createBatch(data: {
   exam: string
   price: number
   originalPrice: number
-  expiry?: Date | null
+  expiry?: number | null
   contentType: BatchContentType
   description?: string | null
+  isFeatured?: boolean
 }): Promise<IBatchDocument> {
   await dbConnect()
   const Batch = getBatchModel()
@@ -197,9 +205,10 @@ export async function updateBatch(
     title: string
     price: number
     originalPrice: number
-    expiry: Date | null
+    expiry: number | null
     contentType: BatchContentType
     description: string | null
+    isFeatured: boolean
   }>
 ): Promise<IBatchDocument | null> {
   await dbConnect()
@@ -290,6 +299,23 @@ export async function getBatchCountByExam(examId: string): Promise<number> {
   await dbConnect()
   const Batch = getBatchModel()
   return Batch.countDocuments({ exam: examId })
+}
+
+/**
+ * Get all featured batches with populated exam data
+ */
+export async function getFeaturedBatches(): Promise<IBatchPopulated[]> {
+  await dbConnect()
+  const Batch = getBatchModel()
+  const batches = await Batch.find({ isFeatured: true })
+    .populate({
+      path: "exam",
+      select: "_id title slug imageURL",
+    })
+    .sort({ createdAt: -1 })
+    .lean()
+  
+  return batches as unknown as IBatchPopulated[]
 }
 
 export default getBatchModel

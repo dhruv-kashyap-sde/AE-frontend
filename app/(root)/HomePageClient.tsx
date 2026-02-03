@@ -60,9 +60,30 @@ interface Exam {
   }
 }
 
+interface FeaturedBatch {
+  _id: string
+  id: string
+  title: string
+  slug: string
+  price: number
+  originalPrice: number
+  expiry: number | null
+  contentType: "test" | "file"
+  totalCount: number
+  description: string | null
+  exam: {
+    _id: string
+    id: string
+    title: string
+    slug: string
+    imageURL: string | null
+  }
+}
+
 interface HomePageClientProps {
   categories: Category[]
   exams: Exam[]
+  featuredBatches: FeaturedBatch[]
 }
 
 // Import the ExamCategoryBrowser component dynamically to avoid hydration issues
@@ -71,7 +92,7 @@ const ExamCategoryBrowser = dynamic(() => import("./ExamCategoryBrowser"), {
   ssr: false,
 })
 
-export default function HomePageClient({ categories, exams }: HomePageClientProps) {
+export default function HomePageClient({ categories, exams, featuredBatches }: HomePageClientProps) {
   const features = [
     {
       icon: Target,
@@ -182,7 +203,7 @@ export default function HomePageClient({ categories, exams }: HomePageClientProp
               Explore our most popular mock tests and practice papers
             </p>
           </div>
-          <TestPaperCarousel />
+          <TestPaperCarousel featuredBatches={featuredBatches} />
         </div>
       </section>
 

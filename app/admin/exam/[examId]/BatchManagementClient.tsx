@@ -13,6 +13,7 @@ import {
   Calendar,
   IndianRupee,
   FolderIcon,
+  Star,
 } from "lucide-react";
 import {
   createBatch,
@@ -40,6 +41,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Empty,
   EmptyContent,
@@ -76,6 +78,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { formatDurationFromMonths } from "@/lib/utils";
 
 // Types
 interface Exam {
@@ -93,10 +96,11 @@ interface Batch {
   slug: string;
   price: number;
   originalPrice: number;
-  expiry: string | null;
+  expiry: number | null;
   contentType: "test" | "file";
   totalCount: number;
   description: string | null;
+  isFeatured: boolean;
   createdAt: string;
 }
 
@@ -107,6 +111,7 @@ interface BatchFormData {
   expiry: string;
   contentType: "test" | "file";
   description: string;
+  isFeatured: boolean;
 }
 
 interface BatchManagementClientProps {
@@ -121,6 +126,7 @@ const initialFormData: BatchFormData = {
   expiry: "",
   contentType: "test",
   description: "",
+  isFeatured: false,
 };
 
 export default function BatchManagementClient({
@@ -156,15 +162,20 @@ export default function BatchManagementClient({
       toast.error("Please enter a valid original price");
       return;
     }
+    if (formData.expiry && parseInt(formData.expiry, 10) < 0) {
+      toast.error("Expiry months cannot be negative");
+      return;
+    }
 
     startTransition(async () => {
       const result = await createBatch(exam._id || exam.id, exam.slug, {
         title: formData.title,
         price: parseFloat(formData.price),
         originalPrice: parseFloat(formData.originalPrice),
-        expiry: formData.expiry || null,
+        expiry: formData.expiry ? parseInt(formData.expiry, 10) : null,
         contentType: formData.contentType,
         description: formData.description || null,
+        isFeatured: formData.isFeatured,
       });
 
       if (result.success) {
@@ -190,9 +201,10 @@ export default function BatchManagementClient({
       title: batch.title,
       price: batch.price.toString(),
       originalPrice: batch.originalPrice.toString(),
-      expiry: batch.expiry ? batch.expiry.split("T")[0] : "",
+      expiry: batch.expiry !== null ? batch.expiry.toString() : "",
       contentType: batch.contentType,
       description: batch.description || "",
+      isFeatured: batch.isFeatured || false,
     });
     setEditDialog(true);
   };
@@ -212,6 +224,10 @@ export default function BatchManagementClient({
       toast.error("Please enter a valid original price");
       return;
     }
+    if (formData.expiry && parseInt(formData.expiry, 10) < 0) {
+      toast.error("Expiry months cannot be negative");
+      return;
+    }
 
     const batchId = editingBatch._id || editingBatch.id;
 
@@ -220,9 +236,10 @@ export default function BatchManagementClient({
         title: formData.title,
         price: parseFloat(formData.price),
         originalPrice: parseFloat(formData.originalPrice),
-        expiry: formData.expiry || null,
+        expiry: formData.expiry ? parseInt(formData.expiry, 10) : null,
         contentType: formData.contentType,
         description: formData.description || null,
+        isFeatured: formData.isFeatured,
       });
 
       if (result.success) {
@@ -275,25 +292,15 @@ export default function BatchManagementClient({
     });
   };
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
   // Calculate discount percentage
   const getDiscount = (price: number, originalPrice: number) => {
     if (originalPrice <= 0 || price >= originalPrice) return 0;
     return Math.round(((originalPrice - price) / originalPrice) * 100);
   };
 
-  // Check if batch is expired
-  const isExpired = (expiry: string | null) => {
-    if (!expiry) return false;
-    return new Date(expiry) < new Date();
+  const renderExpiry = (expiry: number | null) => {
+    if (expiry === null) return null;
+    return formatDurationFromMonths(expiry);
   };
 
   // Form fields JSX - inlined to avoid re-render focus loss
@@ -362,12 +369,12 @@ export default function BatchManagementClient({
         </div>
         <div>
           <Label className="mb-2" htmlFor={`${idPrefix}-expiry`}>
-            Expiry Date
+            Expiry (Months)
           </Label>
           <Input
             id={`${idPrefix}-expiry`}
-            type="date"
-            min={new Date().toISOString().split("T")[0]}
+            type="number"
+            min="0"
             value={formData.expiry}
             onChange={(e) => setFormData({ ...formData, expiry: e.target.value })}
           />
@@ -385,6 +392,22 @@ export default function BatchManagementClient({
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id={`${idPrefix}-isFeatured`}
+          checked={formData.isFeatured}
+          onCheckedChange={(checked) =>
+            setFormData({ ...formData, isFeatured: checked === true })
+          }
+        />
+        <Label
+          htmlFor={`${idPrefix}-isFeatured`}
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Feature on Homepage
+        </Label>
       </div>
     </div>
   );
@@ -454,12 +477,11 @@ export default function BatchManagementClient({
         {batches.length > 0 ? (
           batches.map((batch) => {
             const discount = getDiscount(batch.price, batch.originalPrice);
-            const expired = isExpired(batch.expiry);
 
             return (
               <Card
                 key={batch._id || batch.id}
-                className={`hover:shadow-lg transition-shadow flex flex-col ${expired ? "opacity-60" : ""}`}
+                className="hover:shadow-lg transition-shadow flex flex-col"
               >
                 <CardHeader className="space-y-3 pb-3">
                   <div className="flex items-start justify-between">
@@ -487,13 +509,14 @@ export default function BatchManagementClient({
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <CardTitle className="text-lg leading-tight">
                         {batch.title}
                       </CardTitle>
-                      {expired && (
-                        <Badge variant="destructive" className="text-xs">
-                          Expired
+                      {batch.isFeatured && (
+                        <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700">
+                          <Star className="h-3 w-3 mr-1 fill-amber-500" />
+                          Featured
                         </Badge>
                       )}
                     </div>
@@ -530,10 +553,10 @@ export default function BatchManagementClient({
                     </div>
 
                     {/* Expiry */}
-                    {batch.expiry && (
+                    {batch.expiry !== null && (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        <span>Expires: {formatDate(batch.expiry)}</span>
+                        <span>Validity: {renderExpiry(batch.expiry)}</span>
                       </div>
                     )}
 

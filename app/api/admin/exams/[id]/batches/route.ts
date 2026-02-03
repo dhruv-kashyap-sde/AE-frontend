@@ -93,6 +93,13 @@ export async function POST(
       )
     }
 
+    if (expiry !== undefined && expiry !== null && expiry < 0) {
+      return NextResponse.json(
+        { success: false, error: "Expiry months cannot be negative" },
+        { status: 400 }
+      )
+    }
+
     if (!contentType || !["test", "file"].includes(contentType)) {
       return NextResponse.json(
         { success: false, error: "Content type must be 'test' or 'file'" },
@@ -114,7 +121,7 @@ export async function POST(
       exam: examId,
       price,
       originalPrice,
-      expiry: expiry ? new Date(expiry) : null,
+      expiry: expiry ?? null,
       contentType,
       description: description?.trim() || null,
     })

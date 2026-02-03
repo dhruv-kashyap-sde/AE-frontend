@@ -144,7 +144,7 @@ export async function getExamBySlug(slug: string): Promise<IExamPopulated | null
   await ensureModelsRegistered()
   const Exam = getExamModel()
   return Exam.findOne({ slug })
-    .populate("category", "title imageURL") as unknown as Promise<IExamPopulated | null>
+    // .populate("category", "title imageURL") as unknown as Promise<IExamPopulated | null>
 }
 
 /**

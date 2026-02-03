@@ -3,72 +3,108 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronLeft, ChevronRight } from "lucide-react";
+import { Zap, ChevronLeft, ChevronRight, IndianRupee, Calendar, ShoppingCart, Eye } from "lucide-react";
 import Link from "next/link";
+import { formatDurationFromMonths } from "@/lib/utils";
 
-const TestPaperCarousel = () => {
+// Types for featured batches
+interface FeaturedBatch {
+  _id: string;
+  id: string;
+  title: string;
+  slug: string;
+  price: number;
+  originalPrice: number;
+  expiry: number | null;
+  contentType: "test" | "file";
+  totalCount: number;
+  description: string | null;
+  exam: {
+    _id: string;
+    id: string;
+    title: string;
+    slug: string;
+    imageURL: string | null;
+  };
+}
+
+interface TestPaperCarouselProps {
+  featuredBatches?: FeaturedBatch[];
+}
+
+const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => {
+  // Fallback mock data when no featured batches are available
   const mockTests = [
     {
-      id: 1,
+      id: "mock-1",
       title: "MHT CET PYP 2025",
-      subtitle: "MHT CET 2025 : 5th May Evening Shift",
+      examTitle: "MHT CET",
+      examSlug: "mht-cet",
+      slug: "pyp-2025",
       attempts: 164,
-      questionsCount: 150,
-      maxMarks: 200,
-      time: 180,
-      isNew: true,
+      price: 299,
+      originalPrice: 599,
+      expiry: null,
+      totalCount: 150,
+      contentType: "test" as const,
     },
     {
-      id: 2,
+      id: "mock-2",
       title: "NTA CUET General Tests 2026",
-      subtitle: "General Mock Test - 1",
+      examTitle: "CUET",
+      examSlug: "cuet",
+      slug: "general-2026",
       attempts: 85,
-      questionsCount: 50,
-      maxMarks: 250,
-      time: 60,
-      isNew: true,
+      price: 199,
+      originalPrice: 399,
+      expiry: null,
+      totalCount: 50,
+      contentType: "test" as const,
     },
     {
-      id: 3,
-      title: "WBJEE - Physics Chapterwise PYP (2025-2008)",
-      subtitle: "1. Units and Measurements",
+      id: "mock-3",
+      title: "WBJEE Physics PYP",
+      examTitle: "WBJEE",
+      examSlug: "wbjee",
+      slug: "physics-pyp",
       attempts: 79,
-      questionsCount: 17,
-      maxMarks: 34,
-      time: 17,
-      isNew: true,
+      price: 149,
+      originalPrice: 299,
+      expiry: null,
+      totalCount: 17,
+      contentType: "test" as const,
     },
     {
-      id: 4,
-      title: "WBJEE - Chemistry Chapterwise PYP (2025-2008)",
-      subtitle: "1. Some Basic Concepts of Chemistry",
+      id: "mock-4",
+      title: "WBJEE Chemistry PYP",
+      examTitle: "WBJEE",
+      examSlug: "wbjee",
+      slug: "chemistry-pyp",
       attempts: 211,
-      questionsCount: 18,
-      maxMarks: 36,
-      time: 18,
-      isNew: true,
-    },
-    {
-      id: 5,
-      title: "JEE Main 2025 Mock Test",
-      subtitle: "Physics, Chemistry & Mathematics",
-      attempts: 342,
-      questionsCount: 90,
-      maxMarks: 300,
-      time: 180,
-      isNew: false,
-    },
-    {
-      id: 6,
-      title: "NEET 2025 Full Length Test",
-      subtitle: "Physics, Chemistry & Biology",
-      attempts: 521,
-      questionsCount: 180,
-      maxMarks: 720,
-      time: 180,
-      isNew: false,
+      price: 149,
+      originalPrice: 299,
+      expiry: null,
+      totalCount: 18,
+      contentType: "test" as const,
     },
   ];
+
+  // Use featured batches if available, otherwise use mock data
+  const displayItems = featuredBatches.length > 0
+    ? featuredBatches.map((batch) => ({
+        id: batch._id || batch.id,
+        title: batch.title,
+        examTitle: batch.exam.title,
+        examSlug: batch.exam.slug,
+        slug: batch.slug,
+        attempts: Math.floor(Math.random() * 500) + 50, // Hardcoded random attempts for now
+        price: batch.price,
+        originalPrice: batch.originalPrice,
+        expiry: batch.expiry,
+        totalCount: batch.totalCount,
+        contentType: batch.contentType,
+      }))
+    : mockTests;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -95,7 +131,7 @@ const TestPaperCarousel = () => {
     return () => window.removeEventListener("resize", updateVisibleCards);
   }, []);
 
-  const maxIndex = Math.max(0, mockTests.length - visibleCards);
+  const maxIndex = Math.max(0, displayItems.length - visibleCards);
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
@@ -107,14 +143,14 @@ const TestPaperCarousel = () => {
 
   // Auto-slide functionality
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || displayItems.length <= visibleCards) return;
 
     const interval = setInterval(() => {
       nextSlide();
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [isPaused, nextSlide]);
+  }, [isPaused, nextSlide, displayItems.length, visibleCards]);
 
   // Touch handlers for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -147,7 +183,21 @@ const TestPaperCarousel = () => {
     setTimeout(() => setIsPaused(false), 3000);
   };
 
+  // Calculate discount percentage
+  const getDiscount = (price: number, originalPrice: number) => {
+    if (originalPrice <= 0 || price >= originalPrice) return 0;
+    return Math.round(((originalPrice - price) / originalPrice) * 100);
+  };
+
   const cardWidth = 100 / visibleCards;
+
+  if (displayItems.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>No featured practice sets available at the moment.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
@@ -166,109 +216,144 @@ const TestPaperCarousel = () => {
             transform: `translateX(-${currentIndex * cardWidth}%)`,
           }}
         >
-          {mockTests.map((test) => (
-            <div
-              key={test.id}
-              className="shrink-0 px-2"
-              style={{ width: `${cardWidth}%` }}
-            >
-              <Card className="relative bg-card hover:shadow-xl transition-shadow h-full">
-                {test.isNew && (
-                  <Badge className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1">
-                    NEW
-                  </Badge>
-                )}
+          {displayItems.map((item) => {
+            const discount = getDiscount(item.price, item.originalPrice);
 
-                <CardHeader className="space-y-4">
-                  <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
-                    <Zap className="h-6 w-6 text-primary-foreground fill-current" />
-                  </div>
+            return (
+              <div
+                key={item.id}
+                className="shrink-0 px-2"
+                style={{ width: `${cardWidth}%` }}
+              >
+                <Card className="relative bg-card hover:shadow-xl transition-shadow h-full flex flex-col">
+                  {discount > 0 && (
+                    <Badge className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1">
+                      {discount}% OFF
+                    </Badge>
+                  )}
 
-                  <div className="space-y-2">
-                    <h4 className="font-bold text-lg leading-tight text-foreground line-clamp-2">
-                      {test.title}
-                    </h4>
-                    <p className="text-sm text-muted-foreground line-clamp-1">
-                      {test.subtitle}
-                    </p>
-                  </div>
+                  <CardHeader className="space-y-4">
+                    <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
+                      <Zap className="h-6 w-6 text-primary-foreground fill-current" />
+                    </div>
 
-                  <Badge
-                    variant="secondary"
-                    className="bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium w-fit"
-                  >
-                    {test.attempts} Attempts
-                  </Badge>
-                </CardHeader>
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-lg leading-tight text-foreground line-clamp-2">
+                        {item.title}
+                      </h4>
+                      <p className="text-sm text-muted-foreground line-clamp-1">
+                        {item.examTitle}
+                      </p>
+                    </div>
 
-                <CardContent className="space-y-4 pt-0">
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>Questions Count: {test.questionsCount}</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>Max Marks: {test.maxMarks}</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>Time: {test.time} minutes</span>
-                    </li>
-                  </ul>
+                    <Badge
+                      variant="secondary"
+                      className="bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium w-fit"
+                    >
+                      {item.attempts} Attempts
+                    </Badge>
+                  </CardHeader>
 
-                  <Link href={`/test/${test.id}`} className="block">
-                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
-                      Explore
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-          ))}
+                  <CardContent className="space-y-4 pt-0 flex-1 flex flex-col">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>
+                          {item.totalCount} {item.contentType === "test" ? "Tests" : "Files"}
+                        </span>
+                      </li>
+                      <li className="flex items-center">
+                        <span className="mr-2">•</span>
+                        <span className="flex items-center gap-2">
+                          <span className="font-bold text-foreground flex items-center">
+                            <IndianRupee className="h-3 w-3" />
+                            {item.price}
+                          </span>
+                          {discount > 0 && (
+                            <span className="text-muted-foreground line-through flex items-center text-xs">
+                              <IndianRupee className="h-2.5 w-2.5" />
+                              {item.originalPrice}
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                      {item.expiry !== null && (
+                        <li className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Validity: {formatDurationFromMonths(item.expiry)}</span>
+                        </li>
+                      )}
+                    </ul>
+
+                    <div className="mt-auto grid grid-cols-2 gap-2">
+                      <Link href={`/exam/${item.examSlug}/${item.slug}`} className="block">
+                        <Button
+                          variant="outline"
+                          className="w-full cursor-pointer"
+                          size="sm"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                      <Button
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                        size="sm"
+                      >
+                        <ShoppingCart className="h-4 w-4 mr-1" />
+                        Buy
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* Navigation Controls */}
-      <div className="flex items-center justify-center sm:justify-end gap-3 mt-6">
-        {/* Dot Indicators */}
-        <div className="flex items-center gap-2">
-          {Array.from({ length: maxIndex + 1 }).map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                currentIndex === index
-                  ? "w-6 bg-primary-foreground"
-                  : "w-2 bg-primary-foreground/40 hover:bg-primary-foreground/60"
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
+      {displayItems.length > visibleCards && (
+        <div className="flex items-center justify-center sm:justify-end gap-3 mt-6">
+          {/* Dot Indicators */}
+          <div className="flex items-center gap-2">
+            {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentIndex(index)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  currentIndex === index
+                    ? "w-6 bg-primary-foreground"
+                    : "w-2 bg-primary-foreground/40 hover:bg-primary-foreground/60"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
 
-        {/* Arrow Buttons */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={prevSlide}
-            className="h-10 w-10 rounded-full bg-background/90 hover:bg-background border-0 shadow-md"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={nextSlide}
-            className="h-10 w-10 rounded-full bg-background/90 hover:bg-background border-0 shadow-md"
-            aria-label="Next slide"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
+          {/* Arrow Buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={prevSlide}
+              className="h-10 w-10 rounded-full bg-background/90 hover:bg-background border-0 shadow-md"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={nextSlide}
+              className="h-10 w-10 rounded-full bg-background/90 hover:bg-background border-0 shadow-md"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
