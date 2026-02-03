@@ -108,13 +108,13 @@ export default function HomePageClient({ categories, exams }: HomePageClientProp
       {/* Hero Section */}
       <section className="relative py-5 lg:py-28 overflow-hidden">
 
-        <div className="absolute inset-0 bg-linear-to-r from-blue-100 to-background " />
+        <div className="absolute inset-0 bg-primary/10 " />
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col lg:flex-row-reverse justify-between">
             <Image
               src={logoImage}
               alt="Hero Image"
-              className="rounded-full md:rounded-lg mb-5 mx-auto lg:mx-0 w-48 h-48 lg:w-96 lg:h-96 object-cover"
+              className="rounded-full drop-shadow-2xl  mb-5 mx-auto lg:mx-0 w-48 h-48 lg:w-96 lg:h-96 object-cover"
               // width={600}
               // height={400}
             />
@@ -172,13 +172,13 @@ export default function HomePageClient({ categories, exams }: HomePageClientProp
       </section>
 
       {/* Test Paper Carousel */}
-      <section className="py-10 bg-primary/80 dark:bg-transparent ">
+      <section className="py-10  ">
         <div className="container mx-auto px-4">
-          <div className="text-center text-primary-foreground max-w-3xl mx-auto mb-12 space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold dark:text-primary">
-              Featured Test Papers
+          <div className="text-center text-foreground max-w-3xl mx-auto mb-12 space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary">
+              Featured Practice Sets
             </h2>
-            <p className="text-lg text-muted dark:text-foreground">
+            <p className="text-lg text- dark:text-foreground">
               Explore our most popular mock tests and practice papers
             </p>
           </div>
@@ -186,8 +186,11 @@ export default function HomePageClient({ categories, exams }: HomePageClientProp
         </div>
       </section>
 
+      {/* Exam Categories - Dynamic */}
+      <ExamCategoryBrowser categories={categories} exams={exams} />
+
       {/* Features Section */}
-      <section className="py-20 bg-muted/50">
+      <section className="py-20 ">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <h2 className="text-3xl md:text-4xl font-bold">
@@ -219,9 +222,6 @@ export default function HomePageClient({ categories, exams }: HomePageClientProp
           </div>
         </div>
       </section>
-
-      {/* Exam Categories - Dynamic */}
-      <ExamCategoryBrowser categories={categories} exams={exams} />
 
       {/* How It Works */}
       <section className="py-20 bg-muted/50">

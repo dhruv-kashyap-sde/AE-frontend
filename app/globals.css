@@ -62,7 +62,7 @@
   --accent-foreground: oklch(18% 0.024 270); /* 222 47% 11% */
   --destructive: oklch(65.773% 0.20669 21.488); /* 0 84% 60% */
   --destructive-foreground: oklch(100% 0 0); /* 0 0% 100% */
-  --border: oklch(80.003% 0.00548 248.275); /* 214 25% 88% */
+  --border: oklch(0.922 0 0); /* 214 25% 88% */
   --input: oklch(75.521% 0.00737 248.192); /* 214 25% 88% */
   --ring: oklch(63% 0.185 260); /* 217 91% 55% */
   --chart-1: oklch(0.63 0.185 260);
@@ -82,8 +82,8 @@
 
 .dark {
   /* Dark Mode - Blue-Whitish Theme */
-  --background: oklch(14% 0.026 270); /* 222 47% 8% */
-  --foreground: oklch(96.5% 0.008 240); /* 210 40% 96% */
+  --background: oklch(15.556% 0.03242 273.189); /* 222 47% 8% */
+  --foreground: oklch(90.317% 0.00184 249.114); /* 210 40% 96% */
   --card: oklch(18% 0.024 270); /* 222 47% 11% */
   --card-foreground: oklch(96.5% 0.008 240); /* 210 40% 96% */
   --popover: oklch(18% 0.024 270); /* 222 47% 11% */

@@ -172,9 +172,9 @@ const TestPaperCarousel = () => {
               className="shrink-0 px-2"
               style={{ width: `${cardWidth}%` }}
             >
-              <Card className="relative bg-background hover:shadow-xl transition-shadow h-full">
+              <Card className="relative bg-card hover:shadow-xl transition-shadow h-full">
                 {test.isNew && (
-                  <Badge className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1">
+                  <Badge className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1">
                     NEW
                   </Badge>
                 )}
