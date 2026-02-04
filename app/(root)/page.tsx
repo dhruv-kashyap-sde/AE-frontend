@@ -37,6 +37,8 @@ export default async function HomePage() {
       title: exam.category.title,
     },
   }))
+  console.log(exams, categories);
+  
 
   // Serialize featured batches for client component
   const featuredBatches = featuredBatchesRaw.map((batch) => ({

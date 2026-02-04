@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, createElement } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import {
   Card,
@@ -13,8 +13,8 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+
+
 import {
   BookOpen,
   Building2,
@@ -29,7 +29,7 @@ import {
   GraduationCap,
   Briefcase,
   ChevronRight,
-  Menu,
+
   Search as SearchIcon,
   X as XIcon,
   FolderOpen,
@@ -78,7 +78,6 @@ export default function ExamCategoryBrowser({
   categories,
   exams,
 }: ExamCategoryBrowserProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string>(
     categories[0]?.title || ""
   )
@@ -104,7 +103,7 @@ export default function ExamCategoryBrowser({
   }
 
   return (
-    <section className="py-20 bg-muted/50">
+    <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
           <h2 className="text-3xl md:text-4xl font-bold">
@@ -160,57 +159,28 @@ export default function ExamCategoryBrowser({
           {/* Main Content */}
           <div className="flex-1">
             {/* Mobile Category Selector */}
-            <div className="lg:hidden mb-6 space-y-4">
-              <Sheet
-                open={isMobileMenuOpen}
-                onOpenChange={setIsMobileMenuOpen}
-              >
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between"
-                  >
-                    <span className="flex items-center gap-2">
-                      {createElement(getCategoryIcon(selectedCategory), {
-                        className: "h-5 w-5",
-                      })}
-                      {selectedCategory}
-                    </span>
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-70 p-0">
-                  <div className="py-6 px-4 border-b">
-                    <h2 className="text-lg font-semibold">Categories</h2>
-                  </div>
-                  <nav className="space-y-1 p-2">
-                    {categories.map((category) => {
-                      const Icon = getCategoryIcon(category.title)
-                      const count = getExamCount(category.title)
-                      return (
-                        <button
-                          key={category._id}
-                          onClick={() => {
-                            setSelectedCategory(category.title)
-                            setIsMobileMenuOpen(false)
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors rounded-lg ${
-                            selectedCategory === category.title
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-accent"
-                          }`}
-                        >
-                          <Icon className="h-5 w-5 shrink-0" />
-                          <span className="font-medium">
-                            {category.title}
-                            <span className="ml-1 opacity-70">({count})</span>
-                          </span>
-                        </button>
-                      )
-                    })}
-                  </nav>
-                </SheetContent>
-              </Sheet>
+            <div className="lg:hidden mb-6 -mx-4 px-4">
+              <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar flex-wrap">
+                {categories.map((category) => {
+                  const Icon = getCategoryIcon(category.title)
+                  const isSelected = selectedCategory === category.title
+                  return (
+                    <button
+                      key={category._id}
+                      onClick={() => setSelectedCategory(category.title)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium whitespace-nowrap transition-colors ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {category.title} {" "}
+                      ({getExamCount(category.title)})
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             {/* Search Bar */}
@@ -241,7 +211,7 @@ export default function ExamCategoryBrowser({
                 filteredExams.map((exam) => {
                   return (
                     <Link href={`exam/${exam.slug}`} key={exam._id}>
-                    <Card className="group cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary h-full">
+                    <Card className="group cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/50 h-full">
                       <CardHeader className="pb-3">
                         <div className="flex items-center gap-3">
                           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

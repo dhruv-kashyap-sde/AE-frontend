@@ -186,8 +186,8 @@ export default async function BatchPage({ params }: PageProps) {
             </div>
 
             {/* Price & Buy Section */}
-            <Card className="md:w-auto">
-              <CardContent className="p-4">
+            <Card className="md:w-auto shadow">
+              <CardContent className="px-4">
                 <div className="flex items-center gap-4">
                   <div>
                     <div className="flex items-baseline gap-2">
@@ -201,7 +201,7 @@ export default async function BatchPage({ params }: PageProps) {
                             <IndianRupee className="h-3 w-3" />
                             {batch.originalPrice.toLocaleString("en-IN")}
                           </span>
-                          <Badge className="bg-red-500 text-white">
+                          <Badge className="bg-green-500 text-white">
                             {discount}% OFF
                           </Badge>
                         </>

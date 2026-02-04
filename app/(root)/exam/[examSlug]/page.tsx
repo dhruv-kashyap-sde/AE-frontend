@@ -127,18 +127,18 @@ export default async function ExamPage({ params }: PageProps) {
               return (
                 <Card
                   key={batch._id}
-                  className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary overflow-hidden"
+                  className="group relative hover:shadow-xl transition-all duration-300 border overflow-hidden  bg-linear-to-b from-primary/10 to-background"
                 >
                   {/* Badge for NEW or Discount */}
                   {discount > 0 && (
                     <div className="absolute top-3 right-3 z-10">
-                      <Badge className="bg-red-500 hover:bg-red-600 text-white">
+                      <Badge className="bg-green-500 hover:bg-green-600 text-white">
                         {discount}% OFF
                       </Badge>
                     </div>
                   )}
 
-                  <CardHeader className="pb-3 bg-linear-to-br from-primary/5 to-transparent">
+                  <CardHeader className="pb-3">
                     <div className="flex items-start gap-3">
                       <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         {isTest ? (

@@ -97,7 +97,7 @@ const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => 
         examTitle: batch.exam.title,
         examSlug: batch.exam.slug,
         slug: batch.slug,
-        attempts: Math.floor(Math.random() * 500) + 50, // Hardcoded random attempts for now
+        attempts: 225, // Hardcoded random attempts for now
         price: batch.price,
         originalPrice: batch.originalPrice,
         expiry: batch.expiry,

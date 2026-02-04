@@ -82,7 +82,7 @@
 
 .dark {
   /* Dark Mode - Blue-Whitish Theme */
-  --background: oklch(15.556% 0.03242 273.189); /* 222 47% 8% */
+  --background: oklch(13.847% 0.02488 273.247); /* 222 47% 8% */
   --foreground: oklch(90.317% 0.00184 249.114); /* 210 40% 96% */
   --card: oklch(18% 0.024 270); /* 222 47% 11% */
   --card-foreground: oklch(96.5% 0.008 240); /* 210 40% 96% */

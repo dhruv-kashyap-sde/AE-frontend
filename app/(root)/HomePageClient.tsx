@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +42,7 @@ import {
 import Image from "next/image";
 import logoImage from "@/public/logo.jpg";
 import TestPaperCarousel from "@/components/TestPaperCarousel";
+import SearchDialog from "@/components/SearchDialog";
 
 interface Category {
   _id: string
@@ -86,13 +88,11 @@ interface HomePageClientProps {
   featuredBatches: FeaturedBatch[]
 }
 
-// Import the ExamCategoryBrowser component dynamically to avoid hydration issues
-import dynamic from "next/dynamic"
-const ExamCategoryBrowser = dynamic(() => import("./ExamCategoryBrowser"), {
-  ssr: false,
-})
+import ExamCategoryBrowser from "./ExamCategoryBrowser"
 
 export default function HomePageClient({ categories, exams, featuredBatches }: HomePageClientProps) {
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+
   const features = [
     {
       icon: Target,
@@ -156,15 +156,21 @@ export default function HomePageClient({ categories, exams, featuredBatches }: H
                 your dreams.
               </p>
               <section className="flex flex-col gap-4 w-full max-w-md px-4 lg:px-0">
-                <InputGroup>
-                  <InputGroupInput placeholder="Search Tests..." />
-                  <InputGroupAddon>
-                    <SearchIcon />
-                  </InputGroupAddon>
-                  <InputGroupAddon align="inline-end">
-                    <XIcon />
-                  </InputGroupAddon>
-                </InputGroup>
+                <div 
+                  onClick={() => setIsSearchOpen(true)}
+                  className="cursor-pointer"
+                >
+                  <InputGroup>
+                    <InputGroupInput 
+                      placeholder="Search Tests... (Ctrl+K)" 
+                      readOnly
+                      className="cursor-pointer"
+                    />
+                    <InputGroupAddon>
+                      <SearchIcon />
+                    </InputGroupAddon>
+                  </InputGroup>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <Button asChild>
                     <Link href="/signup">Explore Tests</Link>
@@ -326,6 +332,9 @@ export default function HomePageClient({ categories, exams, featuredBatches }: H
           </Card>
         </div>
       </section>
+
+      {/* Search Dialog */}
+      <SearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
     </>
   );
 }
