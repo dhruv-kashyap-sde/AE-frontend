@@ -40,6 +40,7 @@ import {
   FileIcon,
   File,
 } from "lucide-react"
+import Image from "next/image"
 
 interface PageProps {
   params: Promise<{ examSlug: string; batchSlug: string }>
@@ -163,13 +164,10 @@ export default async function BatchPage({ params }: PageProps) {
           {/* Batch Title with Info */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                {isTestBatch ? (
-                  <BookOpen className="h-8 w-8 md:h-10 md:w-10 text-primary" />
-                ) : (
-                  <FileText className="h-8 w-8 md:h-10 md:w-10 text-primary" />
-                )}
-              </div>
+              {/* <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                
+              </div> */}
+              <Image src={exam.imageURL || "/default-exam.png"} alt={exam.title} width={80} height={80} />
               <div>
                 <h1 className="text-2xl md:text-4xl font-bold">{batch.title}</h1>
                 <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -188,7 +186,7 @@ export default async function BatchPage({ params }: PageProps) {
             {/* Price & Buy Section */}
             <Card className="md:w-auto shadow">
               <CardContent className="px-4">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between gap-4 ">
                   <div>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-primary flex items-center">
@@ -245,7 +243,7 @@ export default async function BatchPage({ params }: PageProps) {
               {tests.map((test, index) => (
                 <Card
                   key={test._id}
-                  className="group hover:shadow-lg transition-all duration-300 border hover:border-primary"
+                  className="group hover:shadow-lg transition-all duration-300 border"
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
@@ -260,14 +258,14 @@ export default async function BatchPage({ params }: PageProps) {
                   <CardContent className="space-y-3">
                     {/* Test Stats */}
                     <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
+                      <p className="flex items-center gap-1">
                         <HelpCircle className="h-4 w-4" />
                         <span>{test.questionCount} Questions</span>
-                      </div>
-                      <div className="flex items-center gap-1">
+                      </p>
+                      <p className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
                         <span>{test.duration} min</span>
-                      </div>
+                      </p>
                     </div>
 
                     <div className="text-xs text-muted-foreground">
@@ -280,7 +278,7 @@ export default async function BatchPage({ params }: PageProps) {
                     {/* Action Button */}
                     <Button
                       variant="outline"
-                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground"
+                      className="w-full hover:bg-primary hover:text-primary-foreground"
                       disabled
                     >
                       <Lock className="h-4 w-4 mr-2" />

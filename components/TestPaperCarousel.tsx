@@ -3,9 +3,18 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronLeft, ChevronRight, IndianRupee, Calendar, ShoppingCart, Eye } from "lucide-react";
+import {
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+  IndianRupee,
+  Calendar,
+  ShoppingCart,
+  Eye,
+} from "lucide-react";
 import Link from "next/link";
 import { formatDurationFromMonths } from "@/lib/utils";
+import Image from "next/image";
 
 // Types for featured batches
 interface FeaturedBatch {
@@ -32,7 +41,9 @@ interface TestPaperCarouselProps {
   featuredBatches?: FeaturedBatch[];
 }
 
-const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => {
+const TestPaperCarousel = ({
+  featuredBatches = [],
+}: TestPaperCarouselProps) => {
   // Fallback mock data when no featured batches are available
   const mockTests = [
     {
@@ -47,6 +58,7 @@ const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => 
       expiry: null,
       totalCount: 150,
       contentType: "test" as const,
+      examImageURL: null,
     },
     {
       id: "mock-2",
@@ -60,6 +72,7 @@ const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => 
       expiry: null,
       totalCount: 50,
       contentType: "test" as const,
+      examImageURL: null,
     },
     {
       id: "mock-3",
@@ -73,6 +86,7 @@ const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => 
       expiry: null,
       totalCount: 17,
       contentType: "test" as const,
+      examImageURL: null,
     },
     {
       id: "mock-4",
@@ -86,25 +100,28 @@ const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => 
       expiry: null,
       totalCount: 18,
       contentType: "test" as const,
+      examImageURL: null,
     },
   ];
 
   // Use featured batches if available, otherwise use mock data
-  const displayItems = featuredBatches.length > 0
-    ? featuredBatches.map((batch) => ({
-        id: batch._id || batch.id,
-        title: batch.title,
-        examTitle: batch.exam.title,
-        examSlug: batch.exam.slug,
-        slug: batch.slug,
-        attempts: 225, // Hardcoded random attempts for now
-        price: batch.price,
-        originalPrice: batch.originalPrice,
-        expiry: batch.expiry,
-        totalCount: batch.totalCount,
-        contentType: batch.contentType,
-      }))
-    : mockTests;
+  const displayItems =
+    featuredBatches.length > 0
+      ? featuredBatches.map((batch) => ({
+          id: batch._id || batch.id,
+          title: batch.title,
+          examTitle: batch.exam.title,
+          examSlug: batch.exam.slug,
+          examImageURL: batch.exam.imageURL,
+          slug: batch.slug,
+          attempts: 225, // Hardcoded random attempts for now
+          price: batch.price,
+          originalPrice: batch.originalPrice,
+          expiry: batch.expiry,
+          totalCount: batch.totalCount,
+          contentType: batch.contentType,
+        }))
+      : mockTests;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -178,7 +195,7 @@ const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => 
 
     touchStartX.current = null;
     touchEndX.current = null;
-    
+
     // Resume auto-slide after 3 seconds of no interaction
     setTimeout(() => setIsPaused(false), 3000);
   };
@@ -233,17 +250,25 @@ const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => 
                   )}
 
                   <CardHeader className="space-y-4">
-                    <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
+                    {/* <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
                       <Zap className="h-6 w-6 text-primary-foreground fill-current" />
-                    </div>
+                    </div> */}
 
-                    <div className="space-y-2">
-                      <h4 className="font-bold text-lg leading-tight text-foreground line-clamp-2">
-                        {item.title}
-                      </h4>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {item.examTitle}
-                      </p>
+                    <div className="flex gap-2 items-center">
+                      <Image
+                        src={item.examImageURL || "/default-exam.png"}
+                        alt={item.examTitle}
+                        width={40}
+                        height={40}
+                      />
+                      <div className="">
+                        <h4 className="font-bold text-lg leading-tight text-foreground line-clamp-2">
+                          {item.title}
+                        </h4>
+                        <p className="text-sm text-muted-foreground line-clamp-1">
+                          {item.examTitle}
+                        </p>
+                      </div>
                     </div>
 
                     <Badge
@@ -259,7 +284,8 @@ const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => 
                       <li className="flex items-start">
                         <span className="mr-2">•</span>
                         <span>
-                          {item.totalCount} {item.contentType === "test" ? "Tests" : "Files"}
+                          {item.totalCount}{" "}
+                          {item.contentType === "test" ? "Tests" : "Files"}
                         </span>
                       </li>
                       <li className="flex items-center">
@@ -280,13 +306,18 @@ const TestPaperCarousel = ({ featuredBatches = [] }: TestPaperCarouselProps) => 
                       {item.expiry !== null && (
                         <li className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Validity: {formatDurationFromMonths(item.expiry)}</span>
+                          <span>
+                            Validity: {formatDurationFromMonths(item.expiry)}
+                          </span>
                         </li>
                       )}
                     </ul>
 
                     <div className="mt-auto grid grid-cols-2 gap-2">
-                      <Link href={`/exam/${item.examSlug}/${item.slug}`} className="block">
+                      <Link
+                        href={`/exam/${item.examSlug}/${item.slug}`}
+                        className="block"
+                      >
                         <Button
                           variant="outline"
                           className="w-full cursor-pointer"

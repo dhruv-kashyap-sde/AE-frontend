@@ -31,7 +31,7 @@
     "dotenv": "^17.2.3",
     "katex": "^0.16.27",
     "lucide-react": "^0.562.0",
-    "mongodb": "^7.0.0",
+    "mongodb": "^7.1.0",
     "mongoose": "^9.1.5",
     "next": "^16.1.6",
     "next-auth": "^4.24.13",
