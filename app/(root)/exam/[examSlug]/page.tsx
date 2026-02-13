@@ -30,10 +30,10 @@ import {
   Clock,
   IndianRupee,
   ArrowRight,
-  ShoppingCart,
   Eye,
   Calendar,
 } from "lucide-react"
+import BuyBatchButton from "@/components/BuyBatchButton"
 
 interface PageProps {
   params: Promise<{ examSlug: string }>
@@ -204,10 +204,12 @@ export default async function ExamPage({ params }: PageProps) {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2 pt-2">
-                      <Button className="flex-1" size="sm">
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        Buy Now
-                      </Button>
+                      <BuyBatchButton
+                        batchId={batch._id}
+                        price={batch.price}
+                        className="flex-1"
+                        size="sm"
+                      />
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/exam/${examSlug}/${batch.slug}`}>
                           <Eye className="h-4 w-4 mr-2" />

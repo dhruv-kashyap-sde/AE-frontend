@@ -25,6 +25,9 @@ import { getBatchBySlug } from "@/lib/models/batch"
 import { getTestsByBatch } from "@/lib/models/test"
 import { getFilesByBatch } from "@/lib/models/batchFile"
 import { formatDurationFromMonths } from "@/lib/utils"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { hasActiveBatchAccess } from "@/server/batches/access.service"
 import {
   BookOpen,
   FileText,
@@ -36,10 +39,10 @@ import {
   IndianRupee,
   Calendar,
   Lock,
-  ShoppingCart,
   FileIcon,
   File,
 } from "lucide-react"
+import BuyBatchButton from "@/components/BuyBatchButton"
 import Image from "next/image"
 
 interface PageProps {
@@ -67,6 +70,12 @@ export default async function BatchPage({ params }: PageProps) {
 
   const batchId = batch._id.toString()
   const isTestBatch = batch.contentType === "test"
+
+  // Check access
+  const session = await getServerSession(authOptions)
+  const hasAccess = session?.user?.id
+    ? await hasActiveBatchAccess(session.user.id, batchId)
+    : false
 
   // Fetch tests or files based on batch type
   let tests: Array<{
@@ -212,10 +221,17 @@ export default async function BatchPage({ params }: PageProps) {
                       </p>
                     )}
                   </div>
-                  <Button size="lg">
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Buy Now
-                  </Button>
+                  {hasAccess ? (
+                    <Badge className="bg-green-500 text-white text-sm px-3 py-1">
+                      Access Granted
+                    </Badge>
+                  ) : (
+                    <BuyBatchButton
+                      batchId={batchId}
+                      price={batch.price}
+                      size="lg"
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -276,14 +292,27 @@ export default async function BatchPage({ params }: PageProps) {
                     <Separator />
 
                     {/* Action Button */}
-                    <Button
-                      variant="outline"
-                      className="w-full hover:bg-primary hover:text-primary-foreground"
-                      disabled
-                    >
-                      <Lock className="h-4 w-4 mr-2" />
-                      Purchase to Access
-                    </Button>
+                    {hasAccess ? (
+                      <Button
+                        variant="outline"
+                        className="w-full hover:bg-primary hover:text-primary-foreground"
+                        asChild
+                      >
+                        <Link href={`/exam/${examSlug}/${batchSlug}/${test.slug}`}>
+                          <Play className="h-4 w-4 mr-2" />
+                          Start Test
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled
+                      >
+                        <Lock className="h-4 w-4 mr-2" />
+                        Purchase to Access
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -322,14 +351,24 @@ export default async function BatchPage({ params }: PageProps) {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <Button
-                      variant="outline"
-                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground"
-                      disabled
-                    >
-                      <Lock className="h-4 w-4 mr-2" />
-                      Purchase to Download
-                    </Button>
+                    {hasAccess ? (
+                      <Button
+                        variant="outline"
+                        className="w-full group-hover:bg-primary group-hover:text-primary-foreground"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled
+                      >
+                        <Lock className="h-4 w-4 mr-2" />
+                        Purchase to Download
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ))}

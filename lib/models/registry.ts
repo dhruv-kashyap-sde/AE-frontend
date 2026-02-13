@@ -39,6 +39,10 @@ export async function ensureModelsRegistered(): Promise<void> {
   
   // Level 5: Depends on Test
   await import("./question")
+
+  // Payment models (depend on User + Batch)
+  await import("@/models/Order.model")
+  await import("@/models/BatchPurchase.model")
 }
 
 /**
