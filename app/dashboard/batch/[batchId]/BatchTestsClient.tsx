@@ -8,10 +8,10 @@ import {
   Clock,
   HelpCircle,
   Minus,
-  Play,
   Star,
 } from "lucide-react"
 import Link from "next/link"
+import JEEInstructions from "@/components/instructions/JeeInstructions"
 
 interface TestItem {
   id: string
@@ -89,6 +89,7 @@ export default function BatchTestsClient({
 
 function TestCard({ test }: { test: TestItem }) {
   return (
+    <>
     <Card className="transition-shadow hover:shadow-md flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold leading-tight">
@@ -130,12 +131,9 @@ function TestCard({ test }: { test: TestItem }) {
           )}
         </div>
 
-        {/* Start Test Button */}
-        <Button className="w-full" size="sm">
-          <Play className="mr-2 h-4 w-4" />
-          Start Test
-        </Button>
+        <JEEInstructions test={test} />
       </CardContent>
     </Card>
+    </>
   )
 }

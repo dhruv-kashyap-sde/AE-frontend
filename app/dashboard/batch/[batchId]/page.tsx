@@ -64,6 +64,8 @@ export default async function BatchTestsPage({ params }: BatchTestsPageProps) {
   }))
 
   return (
+    <>
     <BatchTestsClient batch={serializedBatch} tests={serializedTests} />
+    </>
   )
 }

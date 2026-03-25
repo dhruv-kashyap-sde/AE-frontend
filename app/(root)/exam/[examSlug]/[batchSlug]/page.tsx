@@ -70,7 +70,6 @@ export default async function BatchPage({ params }: PageProps) {
 
   const batchId = batch._id.toString()
   const isTestBatch = batch.contentType === "test"
-
   // Check access
   const session = await getServerSession(authOptions)
   const hasAccess = session?.user?.id
