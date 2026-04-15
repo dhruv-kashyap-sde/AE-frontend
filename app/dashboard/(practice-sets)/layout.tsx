@@ -63,7 +63,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
   const navLinks = [
     { href: "/dashboard", label: "Home", icon: Home },
-    { href: "/dashboard/exam", label: "Exams", icon: BookOpen },
     { href: "/dashboard/profile", label: "Profile", icon: User },
   ];
 

@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Link from "next/link";
 
 interface TestItem {
   id: string;
@@ -193,7 +194,11 @@ const JEEInstructions = ({ test }: { test: TestItem }) => {
             </Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button type="button">I Understand</Button>
+            <Button asChild type="button">
+              <Link href={`/dashboard/test/${test.id}/attempt/`}>
+                I Understand
+              </Link>
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

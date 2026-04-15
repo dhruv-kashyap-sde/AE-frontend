@@ -4,7 +4,7 @@
  * Represents exam categories like Engineering, Medical, Banking, etc.
  */
 
-import mongoose, { Schema, Document, Model } from "mongoose"
+import mongoose, { Schema, Document, Model, model, models } from "mongoose"
 import dbConnect from "@/lib/mongoose"
 
 // Category interface for TypeScript
@@ -52,8 +52,8 @@ const CategorySchema = new Schema<ICategoryDocument>(
 )
 
 // Get or create the model (handles hot reload in development)
-function getCategoryModel(): Model<ICategoryDocument> {
-  return mongoose.models.Category || mongoose.model<ICategoryDocument>("Category", CategorySchema)
+export function getCategoryModel(): Model<ICategoryDocument> {
+  return  models.Category || model("Category", CategorySchema)
 }
 
 /**

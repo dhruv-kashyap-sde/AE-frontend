@@ -99,7 +99,7 @@ const QuestionSchema = new Schema<IQuestionDocument>(
 QuestionSchema.index({ test: 1, order: 1 })
 
 // Get or create the model (handles hot reload in development)
-function getQuestionModel(): Model<IQuestionDocument> {
+export function getQuestionModel(): Model<IQuestionDocument> {
   return mongoose.models.Question || mongoose.model<IQuestionDocument>("Question", QuestionSchema)
 }
 

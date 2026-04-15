@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   BookOpen,
   Target,
@@ -10,58 +10,63 @@ import {
   ArrowRight,
   CalendarDays,
   Clock,
-} from "lucide-react"
-import Link from "next/link"
+} from "lucide-react";
+import Link from "next/link";
+import { Input } from "@/components/ui/input";
 
 interface PurchaseItem {
-  id: string
-  validFrom: string
-  validTill: string
-  status: "active" | "expired" | "revoked"
+  id: string;
+  validFrom: string;
+  validTill: string;
+  status: "active" | "expired" | "revoked";
   batch: {
-    id: string
-    title: string
-    slug: string
-    contentType: string
-    totalCount: number
+    id: string;
+    title: string;
+    slug: string;
+    contentType: string;
+    totalCount: number;
     exam: {
-      id: string
-      title: string
-      slug: string
-      imageURL: string | null
-    } | null
-  } | null
-  totalTests: number
-  testsCompleted: number
+      id: string;
+      title: string;
+      slug: string;
+      imageURL: string | null;
+    } | null;
+  } | null;
+  totalTests: number;
+  testsCompleted: number;
 }
 
 interface DashboardClientProps {
-  userName: string
-  purchases: PurchaseItem[]
+  userName: string;
+  purchases: PurchaseItem[];
 }
 
 export default function DashboardClient({
   userName,
   purchases,
 }: DashboardClientProps) {
-  const activePurchases = purchases.filter((p) => p.status === "active" && new Date(p.validTill) > new Date())
-  const expiredPurchases = purchases.filter((p) => p.status !== "active" || new Date(p.validTill) <= new Date())
+  const activePurchases = purchases.filter(
+    (p) => p.status === "active" && new Date(p.validTill) > new Date(),
+  );
+  const expiredPurchases = purchases.filter(
+    (p) => p.status !== "active" || new Date(p.validTill) <= new Date(),
+  );
 
-  const totalTests = activePurchases.reduce((sum, p) => sum + p.totalTests, 0)
+  const totalTests = activePurchases.reduce((sum, p) => sum + p.totalTests, 0);
   const totalCompleted = activePurchases.reduce(
     (sum, p) => sum + p.testsCompleted,
-    0
-  )
+    0,
+  );
 
   const stats = [
     {
-      title: "Batches Bought",
+      title: "Practice Sets Bought",
       value: purchases.length.toString(),
       icon: ShoppingBag,
-      description: "Total batches purchased",
+      description: "Total Practice Sets purchased",
     },
     {
-      title: "Active Batches",
+      title: "Active Practice Sets",
       value: activePurchases.length.toString(),
       icon: BookOpen,
       description: "Currently accessible",
@@ -72,7 +77,7 @@ export default function DashboardClient({
       icon: Target,
       description: "Overall progress",
     },
-  ]
+  ];
 
   return (
     <div className="space-y-8">
@@ -107,7 +112,11 @@ export default function DashboardClient({
       {/* Active Purchases */}
       {activePurchases.length > 0 ? (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">My Batches</h2>
+          <div className="grid grid-cols-3 gap-4 ">
+            <h2 className="text-lg font-semibold">My Practice Sets</h2>
+            <div className="opacity-0"></div>
+            <Input placeholder="Search practice sets..." className="max-w-md" />
+          </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {activePurchases.map((purchase) => (
               <PurchaseCard key={purchase.id} purchase={purchase} />
@@ -118,9 +127,9 @@ export default function DashboardClient({
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Batches Yet</h3>
+            <h3 className="text-xl font-semibold mb-2">No Practice Sets Yet</h3>
             <p className="text-muted-foreground text-center max-w-md mb-6">
-              You haven&apos;t purchased any batch packages yet. Browse our
+              You haven&apos;t purchased any practice sets yet. Browse our
               collection of exam preparation materials to get started.
             </p>
             <Link href="/">
@@ -141,44 +150,40 @@ export default function DashboardClient({
           </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {expiredPurchases.map((purchase) => (
-              <PurchaseCard
-                key={purchase.id}
-                purchase={purchase}
-                isExpired
-              />
+              <PurchaseCard key={purchase.id} purchase={purchase} isExpired />
             ))}
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function PurchaseCard({
   purchase,
   isExpired = false,
 }: {
-  purchase: PurchaseItem
-  isExpired?: boolean
+  purchase: PurchaseItem;
+  isExpired?: boolean;
 }) {
-  if (!purchase.batch) return null
+  if (!purchase.batch) return null;
 
-  const purchaseDate = new Date(purchase.validFrom)
-  const expiryDate = new Date(purchase.validTill)
-  const now = new Date()
+  const purchaseDate = new Date(purchase.validFrom);
+  const expiryDate = new Date(purchase.validTill);
+  const now = new Date();
 
   // Days remaining
   const daysRemaining = Math.max(
     0,
-    Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-  )
+    Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
+  );
 
   const formatDate = (date: Date) =>
     date.toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
       year: "numeric",
-    })
+    });
 
   return (
     <Card
@@ -194,7 +199,10 @@ function PurchaseCard({
               {purchase.batch.exam?.title}
             </p>
           </div>
-          <Badge variant={isExpired ? "secondary" : "default"} className="shrink-0">
+          <Badge
+            variant={isExpired ? "secondary" : "default"}
+            className="shrink-0"
+          >
             {isExpired ? "Expired" : `${daysRemaining}d left`}
           </Badge>
         </div>
@@ -230,7 +238,7 @@ function PurchaseCard({
 
         {/* Action */}
         {!isExpired && (
-          <Link href={`/dashboard/batch/${purchase.batch.id}`}>
+          <Link href={`/dashboard/practice-sets/${purchase.batch.id}`}>
             <Button className="w-full" size="sm">
               View Tests
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -239,5 +247,5 @@ function PurchaseCard({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

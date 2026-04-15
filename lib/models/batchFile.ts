@@ -84,7 +84,7 @@ const BatchFileSchema = new Schema<IBatchFileDocument>(
 )
 
 // Get or create the model (handles hot reload in development)
-function getBatchFileModel(): Model<IBatchFileDocument> {
+export function getBatchFileModel(): Model<IBatchFileDocument> {
   return mongoose.models.BatchFile || mongoose.model<IBatchFileDocument>("BatchFile", BatchFileSchema)
 }
 

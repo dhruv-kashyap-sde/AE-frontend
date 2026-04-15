@@ -56,7 +56,7 @@ const ExamSchema = new Schema<IExamDocument>(
       default: null,
     },
     category: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: [true, "Category is required"],
       index: true,
@@ -97,7 +97,9 @@ ExamSchema.pre("save", function () {
 })
 
 // Get or create the model (handles hot reload in development)
-function getExamModel(): Model<IExamDocument> {
+export function getExamModel(): Model<IExamDocument> {
+  console.log("Available models:", Object.keys(mongoose.models))
+
   return mongoose.models.Exam || mongoose.model<IExamDocument>("Exam", ExamSchema)
 }
 
@@ -133,7 +135,7 @@ export async function getExamById(id: string): Promise<IExamPopulated | null> {
   await ensureModelsRegistered()
   const Exam = getExamModel()
   return Exam.findById(id)
-    .populate("category", "title imageURL") as unknown as Promise<IExamPopulated | null>
+    // .populate("category", "title imageURL") as unknown as Promise<IExamPopulated | null>
 }
 
 /**

@@ -8,7 +8,8 @@
 import dbConnect from "@/lib/mongoose"
 import { Order, IOrderDocument } from "@/models/Order.model"
 import { BatchPurchase, IBatchPurchaseDocument } from "@/models/BatchPurchase.model"
-import { Types } from "mongoose"
+import mongoose, { Types } from "mongoose"
+import getBatchModel from "@/lib/models/batch"
 
 // ─── Order Operations ────────────────────────────────────────
 
@@ -131,7 +132,8 @@ export async function findUserPurchasesWithDetails(userId: string) {
   ensureModelsRegistered()
 
   const BPModel = BatchPurchase()
-
+  console.log(Object.keys(mongoose.models));
+  
   const purchases = await BPModel.find({
     userId: new Types.ObjectId(userId),
   })

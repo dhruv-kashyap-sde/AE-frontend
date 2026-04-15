@@ -131,7 +131,7 @@ BatchSchema.pre("save", function () {
 })
 
 // Get or create the model (handles hot reload in development)
-function getBatchModel(): Model<IBatchDocument> {
+export function getBatchModel(): Model<IBatchDocument> {
   return mongoose.models.Batch || mongoose.model<IBatchDocument>("Batch", BatchSchema)
 }
 

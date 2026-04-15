@@ -1,7 +1,7 @@
 import "./globals.css";
 import 'katex/dist/katex.min.css'
 import { Toaster } from "@/components/ui/sonner"
-import { Analytics } from "@vercel/analytics/next"
+// import { Analytics } from "@vercel/analytics/next"
 import SessionProvider from "@/components/providers/SessionProvider"
 import type { Metadata, Viewport } from "next"
 import { ThemeProvider } from "@/components/dark mode/theme-provider";
