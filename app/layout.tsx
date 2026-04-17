@@ -98,7 +98,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen flex flex-col scrollbar">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col scrollbar">
          <ThemeProvider
             attribute="class"
             defaultTheme="system"

@@ -132,7 +132,7 @@ export default function DashboardClient({
               You haven&apos;t purchased any practice sets yet. Browse our
               collection of exam preparation materials to get started.
             </p>
-            <Link href="/">
+            <Link href="/#browse_exams">
               <Button size="lg">
                 Explore Exams
                 <ArrowRight className="ml-2 h-4 w-4" />

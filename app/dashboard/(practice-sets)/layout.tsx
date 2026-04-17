@@ -8,7 +8,17 @@ import {
   Menu,
   User,
   X,
+  ClipboardList,
+  HomeIcon,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { redirect, usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -40,6 +50,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   }
 
   const user = session?.user;
+  const isAdmin = user?.role === "admin";
+  const dashboardUrl = isAdmin ? "/admin" : "/dashboard";
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -47,6 +59,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     }
     return pathname?.startsWith(path);
   };
+
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" });
@@ -130,7 +144,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                         }`}
                       >
                         <link.icon className="h-5 w-5 shrink-0" />
-                        <span className="text-sm font-medium">{link.label}</span>
+                        <span className="text-sm font-medium">
+                          {link.label}
+                        </span>
                       </button>
                     </Link>
                   ))}
@@ -160,19 +176,97 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                   <LayoutDashboard className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="font-bold text-lg hidden sm:inline">Dashboard</span>
+                <span className="font-bold text-lg hidden sm:inline">
+                  Dashboard
+                </span>
               </Link>
             </div>
 
             {/* Right side - User Avatar (optional quick access) */}
             <div className="ml-auto flex items-center gap-2">
               {user && (
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                    {getInitials(user?.name || "User")}
-                  </AvatarFallback>
-                </Avatar>
+                
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="bg-card border cursor-pointer hover:border-primary pr-2 flex items-center gap-1 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                        <Avatar className="h-10 w-10  border-2 border-transparent transition-colors">
+                          <AvatarImage
+                            src={user?.image || ""}
+                            alt={user?.name || "User"}
+                          />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {getInitials(user?.name || "User")}
+                            
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">My Account</span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64">
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage
+                              src={user?.image || ""}
+                              alt={user?.name || "User"}
+                            />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getInitials(user?.name || "User")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">
+                              {user?.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground leading-none">
+                              {user?.email}
+                            </p>
+                          </div>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href={"/"}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <HomeIcon className="h-4 w-4" />
+                          Home
+                        </Link>
+                      </DropdownMenuItem>
+                      {isAdmin && (
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/exam"
+                            className="flex items-center gap-2 cursor-pointer"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <ClipboardList className="h-4 w-4" />
+                            Manage exams
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      {!isAdmin && (
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/#browse_exams"
+                            className="flex items-center gap-2 cursor-pointer"
+                          >
+                            <ClipboardList className="h-4 w-4" />
+                            Explore Tests
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Log out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
               )}
               <ModeToggle />
             </div>

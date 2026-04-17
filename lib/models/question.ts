@@ -31,6 +31,18 @@ export interface IQuestionDocument extends IQuestion, Document {
   id: string
 }
 
+export interface IAttemptQuestion {
+  _id: Types.ObjectId
+  test: Types.ObjectId
+  question: string
+  optionA: string
+  optionB: string
+  optionC: string
+  optionD: string
+  imageURL: string | null
+  order: number
+}
+
 // Question schema definition
 const QuestionSchema = new Schema<IQuestionDocument>(
   {
@@ -114,6 +126,18 @@ export async function getQuestionsByTest(testId: string): Promise<IQuestionDocum
   await dbConnect()
   const Question = getQuestionModel()
   return Question.find({ test: testId }).sort({ order: 1, createdAt: 1 }).lean()
+}
+
+/**
+ * Get questions for test attempt (without correct answer)
+ */
+export async function getAttemptQuestionsByTest(testId: string): Promise<IAttemptQuestion[]> {
+  await dbConnect()
+  const Question = getQuestionModel()
+  return Question.find({ test: testId })
+    .select("test question optionA optionB optionC optionD imageURL order")
+    .sort({ order: 1, createdAt: 1 })
+    .lean()
 }
 
 /**
