@@ -67,11 +67,11 @@ const getQuestionStateClass = (number: number) => {
   const isReview = [6, 11, 17].includes(number);
   const isReviewWithAnswer = [8, 15].includes(number);
 
-  if (isCurrent) return "bg-amber-400 text-white";
-  if (isReviewWithAnswer) return "bg-emerald-500 text-white";
-  if (isReview) return "bg-cyan-500 text-white";
-  if (isAnswered) return "bg-blue-600 text-white";
-  return "bg-slate-700 text-white";
+  if (isCurrent) return "bg-amber-400 hover:bg-amber-500";
+  if (isReviewWithAnswer) return "bg-emerald-500 hover:bg-emerald-500";
+  if (isReview) return "bg-cyan-500 hover:bg-cyan-500";
+  if (isAnswered) return "bg-blue-600 hover:bg-blue-500";
+  return "bg-slate-700 hover:bg-slate-500";
 };
 
 const QuestionNavigator = ({
@@ -91,10 +91,10 @@ const QuestionNavigator = ({
             <AvatarFallback>ST</AvatarFallback>
           </Avatar>
           <div>
-            <CardTitle className="gradient-text text-3xl font-bold">
+            <CardTitle className="gradient-text text-lg lg:text-3xl font-bold">
               Accurate Exams
             </CardTitle>
-            <p className="mt-0.5 text-lg text-foreground">Galaxy Tab</p>
+            <p className="mt-0.5 text-sm md:text-lg text-foreground">Galaxy Tab</p>
           </div>
           {showThemeToggle ? (
             <div className="absolute right-0 top-0">
@@ -105,11 +105,11 @@ const QuestionNavigator = ({
 
         <Separator />
 
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-          {legendItems.map((item) => (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm">
+          {legendItems.map((item, i) => (
             <div
               key={item.label}
-              className="flex items-center gap-2 text-foreground"
+              className={`flex items-center gap-2 text-foreground ${i === 4 && "text-nowrap w-fit"}`}
             >
               <span className={`h-2.5 w-2.5 rounded-full ${item.color}`} />
               <span>{item.label}</span>
@@ -125,7 +125,8 @@ const QuestionNavigator = ({
             <Button
               key={number}
               variant="ghost"
-              className={`h-11 w-11 rounded-full p-0 text-base font-semibold hover:opacity-90 ${getQuestionStateClass(number)}`}
+              size={"icon"}
+              className={`h-11 w-11 rounded-full p-0 text-base font-semibold text-white cursor-pointer ${getQuestionStateClass(number)}`}
             >
               {number}
             </Button>
@@ -180,9 +181,9 @@ const LeftPanel = () => {
             in the figure. The magnetic induction at point O is:
           </p>
 
-          {/* <div className="flex h-52 items-center justify-center rounded-lg border bg-slate-900  text-sm text-muted-foreground">
+          <div className="flex h-52 items-center justify-center rounded-lg border bg-slate-900  text-sm text-muted-foreground">
             Question Image Placeholder
-          </div> */}
+          </div>
 
           <RadioGroup className="w-full gap-4">
             {options.map((option) => (
@@ -233,7 +234,7 @@ const SheetSidebar = () => {
           View Grid
         </Button>
       </SheetTrigger>
-      <SheetContent className="lg:hidden">
+      <SheetContent className="w-[90%] lg:hidden">
         <SheetHeader>
           <SheetTitle>Question Navigation</SheetTitle>
           <SheetDescription>
@@ -241,7 +242,7 @@ const SheetSidebar = () => {
           </SheetDescription>
         </SheetHeader>
         <div className="px-4 pb-2">
-          <QuestionNavigator />
+          <QuestionNavigator showThemeToggle/>
         </div>
         <SheetFooter>
           <SheetClose asChild>

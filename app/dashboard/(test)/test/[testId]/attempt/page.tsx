@@ -1,13 +1,13 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { Button } from "@/components/ui/button";
 import { getBatchById } from "@/lib/models/batch";
 import { getExamById } from "@/lib/models/exam";
 import { getAttemptQuestionsByTest } from "@/lib/models/question";
 import { getTestById } from "@/lib/models/test";
 import { hasActiveBatchAccess } from "@/server/batches/access.service";
-import { ArrowLeft } from "lucide-react";
+import { TestProvider } from "@/context/TestContext";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
+import TestAttemptClient from "./TestAttemptClient";
 
 const TestAttempt = async ({
   params,
@@ -32,6 +32,7 @@ const TestAttempt = async ({
 
   const batchId = test.batch.toString();
   const batch = await getBatchById(batchId);
+
   if (!batch || batch.contentType !== "test") {
     notFound();
   }
@@ -68,11 +69,17 @@ const TestAttempt = async ({
     questions: serializedQuestions,
   });
 
-  return <>
-    <div className="absolute bg-gray-800 w-full bottom-0 h-16 px-20">
-      <Button variant={"secondary"}><ArrowLeft /></Button>
-    </div>
-  </>;
+  return (
+    <TestProvider
+      questions={serializedQuestions}
+      durationMinutes={test.duration}
+      marksPerQuestion={test.marksPerQuestion}
+      negativeMarking={test.negativeMarking}
+      negativeMarkValue={test.negativeMarkValue}
+    >
+      <TestAttemptClient testTitle={test.title} />
+    </TestProvider>
+  );
 };
 
 export default TestAttempt;
